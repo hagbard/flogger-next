@@ -1,16 +1,31 @@
 # Next Generation Flogger API
 
+Utilize Java's new `StringTemplate` syntax to improve readability of your log statements.
+
 This small, drop-in extension of Google's `FluentLogger` logging API enables the proposed JDK
 22`StringTemplate` functionality (current available as a preview in JDK 21).
 
+## Syntax
+
 This lets you write your log statements using the new string template syntax:
 
+<!-- @formatter:off -->
 ```java
 logger.atInfo()."fn(\{x}, \{y}) = \{lazy(() -> expensiveFn(x, y))}".log();
 ```
+<!-- @formatter:on -->
 
-It also works with multiline comments such as:
+which is equivalent to:
 
+<!-- @formatter:off -->
+```java
+logger.atInfo().log("fn(%s, %s) = %s", x, y, lazy(() -> expensiveFn(x, y)));
+```
+<!-- @formatter:on -->
+
+However, it also works with multiline comments such as:
+
+<!-- @formatter:off -->
 ```java
 // Ignores leading newline and common indentation.
 logger.atInfo()."""
@@ -19,8 +34,13 @@ logger.atInfo()."""
       bar = "\{bar}",
     }""".log();
 ```
+<!-- @formatter:on -->
 
-This works efficiently with Flogger's existing features such as:
+which can make longer log statements far more readable.
+
+## Compatibility
+
+This works efficiently with all of Flogger's existing features such as:
 
 * Zero evaluation for disabled log statements.
 * Zero evaluation for rate-limited log statements.
@@ -38,6 +58,10 @@ it should always be safe to swap to this class.
 
 > **Note**
 >
-> Obviously since this functionality is only being previewed in the JDK at the moment (Oct 2023), you
-> will currently have to opt into the JDK preview features by setting the `--enable-preview` flag if
-> you want to use it. 
+> Obviously since this functionality is currently (Oct 2023) only being previewed in the JDK, you
+> will have to opt into the JDK preview features by setting the `--enable-preview` flag if you want
+> to use it.
+
+## Future Work
+
+It is expected that other features, such a new fluent methods, will be also added to this class.

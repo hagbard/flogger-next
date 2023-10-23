@@ -52,7 +52,7 @@
         <dependency>
             <groupId>net.goui.flogger-testing</groupId>
             <artifactId>junit4</artifactId>
-            <version>1.0.7</version>
+            <version>1.0.8</version>
             <scope>test</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
@@ -67,7 +67,7 @@
             <groupId>com.google.flogger</groupId>
             <artifactId>flogger-grpc-context</artifactId>
             <version>0.7.4</version>
-            <scope>runtime</scope>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
