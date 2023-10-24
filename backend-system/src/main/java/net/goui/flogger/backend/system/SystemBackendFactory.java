@@ -37,9 +37,9 @@ public class SystemBackendFactory extends BackendFactory {
     LazyFactory() {
       // Must not call any code which might risk triggering reentrant Flogger logging.
       LogManager logManager = LogManager.getLogManager();
-      Options options = Options.of(logManager::getProperty).getChildOptions("flogger");
-      this.namingStrategy = NamingStrategy.from(options.getChildOptions("logger_naming"));
-      this.formatter = MessageFormatter.from(options.getChildOptions("message_formatter"));
+      Options options = Options.of(logManager::getProperty).getOptions("flogger");
+      this.namingStrategy = NamingStrategy.from(options.getOptions("logger_naming"));
+      this.formatter = MessageFormatter.from(options.getOptions("message_formatter"));
     }
 
     LoggerBackend create(String loggingClassName) {

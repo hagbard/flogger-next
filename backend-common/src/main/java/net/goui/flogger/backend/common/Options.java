@@ -2,6 +2,7 @@ package net.goui.flogger.backend.common;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
+import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,6 +13,7 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 
 /**
  * Common options API for a Flogger backend module.
@@ -29,8 +31,11 @@ public class Options {
   }
 
   /**
-   * Returns whether an options string value is considered a match for any of the given possible
-   * options. A value is a match for an option if
+   * Returns whether an options string value is a case-insensitive match for any of the given
+   * options.
+   *
+   * <p>This method can be useful when handling arbitrary values with some set of known special
+   * cases, but in general you should prefer using enums where possible.
    */
   public static boolean isAnyOf(String value, String... options) {
     for (String option : options) {
@@ -45,13 +50,35 @@ public class Options {
   // By construction this is either empty or ends with '.' (e.g. "foo.bar.").
   private final String prefix;
 
-  Options(UnaryOperator<String> getFn, String prefix) {
-    this.prefix = prefix;
-    this.getFn = getFn;
+  private Options(UnaryOperator<String> getFn, String prefix) {
+    this.prefix = requireNonNull(prefix);
+    this.getFn = requireNonNull(getFn);
   }
 
   /**
    * Returns the child options of this instance given a (possibly multipart) name.
+   *
+   * <p>Child options are a convenient way to scope available options when passing options into
+   * other code, but they are fundamentally no different to using the fully qualified name. In
+   * particular, child options will still inherit any aliases present in parent options during
+   * lookup.
+   *
+   * <p>For example, with the properties:
+   *
+   * <pre>{@code
+   * foo = $alias
+   * foo.bar.xxx = hello
+   * alias.bar.yyy = world
+   * }</pre>
+   *
+   * we see:
+   *
+   * <pre>{@code
+   * root.get("foo.bar.xxx", "") ==> "hello"
+   * root.get("foo.bar.yyy", "") ==> "world"
+   * root.getChildOptions("foo").get("bar.yyy") ==> "world"
+   * root.getChildOptions("foo.bar").get("yyy") ==> "world"
+   * }</pre>
    *
    * <p>Note that since options are only looked up on demand, it is not possible to detect spelling
    * errors in the name, and if an incorrect name is given then a valid, but empty, options instance
@@ -59,52 +86,108 @@ public class Options {
    *
    * @param name the name of the child options, without a trailing '.' (e.g. "foo" or "foo.bar").
    */
-  public Options getChildOptions(String name) {
+  public Options getOptions(String name) {
     return new Options(getFn, prefix + checkName(name) + ".");
   }
 
+  public List<Options> getOptionsArray(String name) {
+    return collectArrayElements(name, (fqn, i) -> new Options(getFn, fqn + "." + i + "."));
+  }
+
+  /** Returns the raw string value of the given option (including handling aliases). */
   public Optional<String> get(String name) {
     return resolve(name, (fqn, v) -> v);
   }
 
+  /** Returns the string value of the given option or the (non-null) default. */
   public String getString(String name, String defaultValue) {
-    return get(name).orElse(defaultValue);
+    return get(name).orElse(requireNonNull(defaultValue));
   }
 
+  /**
+   * Returns the list of string values in the array of the given option name.
+   *
+   * <p>See {@link Options top level JavaDoc} for details on how arrays are defined.
+   */
   public List<String> getStringArray(String name) {
-    return getValueArray(name, s -> s);
+    return getArray(name, (fqn, s) -> s);
   }
 
+  /**
+   * Returns the long value of the given option or the default.
+   *
+   * <p>Long values are parsed via {@link Long#parseLong(String)}.
+   */
   public long getLong(String name, long defaultValue) {
     return resolve(name, TO_LONG).orElse(defaultValue);
   }
 
+  /**
+   * Returns the list of long values in the array of the given option name.
+   *
+   * <p>See {@link Options top level JavaDoc} for details on how arrays are defined.
+   */
   public List<Long> getLongArray(String name) {
     return getArray(name, TO_LONG);
   }
 
+  /**
+   * Returns the double value of the given option or the default.
+   *
+   * <p>Double values are parsed via {@link Double#parseDouble(String)}.
+   */
   public double getDouble(String name, double defaultValue) {
     return resolve(name, TO_DOUBLE).orElse(defaultValue);
   }
 
+  /**
+   * Returns the list of double values in the array of the given option name.
+   *
+   * <p>See {@link Options top level JavaDoc} for details on how arrays are defined.
+   */
   public List<Double> getDoubleArray(String name) {
     return getArray(name, TO_DOUBLE);
   }
 
+  /**
+   * Returns the boolean value of the given option or the default.
+   *
+   * <p>Long values are parsed case-insensitively such that {@code "true" ==> true} and {@code
+   * "false" ==> false}. This method does not use {@link Boolean#parseBoolean(String)} due to its
+   * often confusing behaviour.
+   */
   public boolean getBoolean(String name, boolean defaultValue) {
     return resolve(name, TO_BOOLEAN).orElse(defaultValue);
   }
 
+  /**
+   * Returns the list of boolean values in the array of the given option name.
+   *
+   * <p>See {@link Options top level JavaDoc} for details on how arrays are defined.
+   */
   public List<Boolean> getBooleanArray(String name) {
     return getArray(name, TO_BOOLEAN);
   }
 
+  /**
+   * Returns the enum value of the given option or the (non-null) default.
+   *
+   * <p>Enum values are matched case-insensitively such that {@code "foo" ==> MyEnum#FOO}, but there
+   * is no modification of the name's format (i.e. {@code "fooBar"} does not resolve to {@code
+   * MyEnum#FOO_BAR}).
+   */
   public <T extends Enum<T>> T getEnum(String name, T defaultValue) {
     @SuppressWarnings("unchecked")
     Class<T> enumClass = (Class<T>) defaultValue.getClass();
     return resolve(name, toEnum(enumClass)).orElse(defaultValue);
   }
 
+  /**
+   * Returns the list of enum values in the array of the given option name for the specified enum
+   * type.
+   *
+   * <p>See {@link Options top level JavaDoc} for details on how arrays are defined.
+   */
   public <T extends Enum<T>> List<T> getEnumArray(String name, Class<T> enumClass) {
     return getArray(name, toEnum(enumClass));
   }
@@ -113,6 +196,12 @@ public class Options {
     return resolve(name, wrap("value", fn));
   }
 
+  /**
+   * Returns the list of transformed values in the array of the given option name for the specified
+   * function.
+   *
+   * <p>See {@link Options top level JavaDoc} for details on how arrays are defined.
+   */
   public <T> List<T> getValueArray(String name, Function<String, T> fn) {
     return getArray(name, wrap("value", fn));
   }
@@ -121,6 +210,7 @@ public class Options {
 
   private static final String BANNED_CHARS = ",$";
 
+  // Names are "foo.bar", no empty segments.
   private static String checkName(String name) {
     if (name.isEmpty()) {
       throw new IllegalArgumentException("Option names must not be empty");
@@ -128,20 +218,33 @@ public class Options {
     if (name.startsWith(".") || name.endsWith(".")) {
       throw new IllegalArgumentException("Option names must not start or end with '.'");
     }
+    if (name.contains("..")) {
+      throw new IllegalArgumentException("Option names must not contain empty segments");
+    }
     if (name.chars().anyMatch(c -> BANNED_CHARS.indexOf(c) != -1)) {
-      throw new IllegalArgumentException("Option names must not contain any of: " + BANNED_CHARS);
+      String listOfBadChars =
+          BANNED_CHARS
+              .codePoints()
+              .mapToObj(Character::toString)
+              .collect(Collectors.joining("', '", "'", "'"));
+      throw new IllegalArgumentException("Option names must not contain any of: " + listOfBadChars);
     }
     return name;
   }
 
+  // Returns the fully qualified name of an options value.
   private String fqn(String name) {
     return prefix.isEmpty() ? name : prefix + name;
   }
 
+  // Returns a (possibly null) raw value given a fully qualified name.
   private String getRaw(String fqn) {
     return getFn.apply(fqn);
   }
 
+  // Resolves the location of the first non-null value (including aliasing) for the given name, and
+  // invokes the given function passing the fully qualified name and value. This function detects
+  // infinite recursion in due to aliases.
   private <T> Optional<T> resolve(String name, BiFunction<String, String, T> op) {
     Set<String> seen = new LinkedHashSet<>();
     return Optional.ofNullable(resolveRecursively(fqn(checkName(name)), op, seen));
@@ -149,28 +252,39 @@ public class Options {
 
   private <T> T resolveRecursively(
       String fqn, BiFunction<String, String, T> op, Set<String> aliases) {
+    checkNoRecursion(fqn, aliases);
     String v = getRaw(fqn);
     if (v != null) {
-      return op.apply(fqn, v);
+      if (!v.startsWith("$")) {
+        // Normal value with no leading '$' (e.g. "foo").
+        return op.apply(fqn, v);
+      }
+      // Remove leading '$': Either get alias, or real value starting with '$'.
+      String valueOrAlias = v.substring(1);
+      if (valueOrAlias.startsWith("$")) {
+        // Value with escaped leading '$' (e.g. "$$foo" -> "$foo").
+        return op.apply(fqn, valueOrAlias);
+      }
+      // Resolve an aliased value directly (only one alias is currently allowed here).
+      return resolveRecursively(checkName(valueOrAlias), op, aliases);
     }
+    // Handle aliases at each level of the fully qualified name, starting with the deepest.
     int lastDot = fqn.lastIndexOf('.');
     while (lastDot > 0) {
       String aliasStr = getRaw(fqn.substring(0, lastDot));
       if (aliasStr != null) {
+        // Handle an alias list of the form "$foo.bar, $baz"
         String childSuffix = fqn.substring(lastDot);
         for (String alias : aliasStr.split(",")) {
+          // Handle a single alias of the form "$foo.bar".
           alias = alias.trim();
           if (!alias.startsWith("$")) {
             throw new OptionParseException(
                 "Option aliases must start with '$' (found alias '%s' for group '%s')", alias, fqn);
           }
-          String aliasFqn = alias.substring(1) + childSuffix;
-          if (!aliases.add(aliasFqn)) {
-            throw new OptionParseException(
-                "Recursive aliases in options hierarchy for: %s\n%s",
-                fqn, String.join("\n<- ", aliases));
-          }
-          T result = resolveRecursively(aliasFqn, op, aliases);
+          // Resolve an aliased group recursively (adding any trailing ".bar" suffix related to the
+          // current position in the current fully qualified name).
+          T result = resolveRecursively(alias.substring(1) + childSuffix, op, aliases);
           if (result != null) {
             return result;
           }
@@ -181,32 +295,44 @@ public class Options {
     return null;
   }
 
+  private static void checkNoRecursion(String fqn, Set<String> aliases) {
+    if (!aliases.add(fqn)) {
+      throw new OptionParseException(
+          "Recursive aliases in options hierarchy:\n%s\n--> %s",
+          String.join("\n--> ", aliases), fqn);
+    }
+  }
+
   private <T> List<T> getArray(String name, BiFunction<String, String, T> fn) {
-    return resolve(checkName(name) + ".size", (fqn, size) -> getArrayImpl(fqn, size, fn))
+    return collectArrayElements(name, (fqn, i) -> getElement(fqn, i, fn));
+  }
+
+  private <T> T getElement(String fqn, int i, BiFunction<String, String, T> fn) {
+    String elementName = fqn + "." + i;
+    String v = getRaw(elementName);
+    if (v != null) {
+      return fn.apply(elementName, v);
+    }
+    throw new OptionParseException("No such array element: %s[%d]", fqn, i);
+  }
+
+  private <T> List<T> collectArrayElements(String name, BiFunction<String, Integer, T> elementFn) {
+    return resolve(
+            checkName(name) + ".size",
+            (fqn, s) -> {
+              int size = Integer.parseUnsignedInt(s);
+              List<T> list = new ArrayList<>(size);
+              fqn = fqn.substring(0, fqn.lastIndexOf('.'));
+              for (int i = 0; i < size; i++) {
+                list.add(elementFn.apply(fqn, i));
+              }
+              return list;
+            })
         .orElse(List.of());
   }
 
-  private <T> List<T> getArrayImpl(
-      String sizeFqn, String sizeValue, BiFunction<String, String, T> fn) {
-    int size = Integer.parseUnsignedInt(sizeValue);
-    List<T> list = new ArrayList<>(size);
-    String fqn = sizeFqn.substring(0, sizeFqn.lastIndexOf('.'));
-    for (int i = 0; i < size; i++) {
-      String indexFqn = fqn + "." + i;
-      String s = getRaw(indexFqn);
-      if (s != null) {
-        list.add(fn.apply(indexFqn, s));
-      } else {
-        throw new OptionParseException("Mismatched array size (not enough elements): %s", fqn);
-      }
-    }
-    if (getRaw(fqn + "." + size) != null) {
-      throw new OptionParseException("Mismatched array size (too many elements): %s", fqn);
-    }
-    return list;
-  }
-
   private static <T> BiFunction<String, String, T> wrap(String type, Function<String, T> fn) {
+    requireNonNull(fn);
     return (fqn, v) -> {
       try {
         return fn.apply(v);

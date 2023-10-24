@@ -16,9 +16,8 @@ public class SystemBackendFactoryTest {
   }
 
   @Test
-  public void test() {
+  public void testLogging() {
     FluentLogger logger = FluentLogger.forEnclosingClass();
     logger.atInfo().every(100).log("Should skip metadata");
   }
-
 }
