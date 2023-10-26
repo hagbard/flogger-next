@@ -6,65 +6,29 @@ import com.google.common.flogger.backend.LogMessageFormatter;
 import com.google.common.flogger.backend.MetadataProcessor;
 import com.google.common.flogger.backend.SimpleMessageFormatter;
 import java.util.List;
+import java.util.Map;
 
 /** Formatting API for the main body of a log message. */
 public interface MessageFormatter {
-  static LogMessageFormatter from(Options options) {
-    String formatterName = options.getString("name", "default");
-    if (Options.isAnyOf(formatterName, "default")) {
-      return getDefaultFormatter(options);
-    }
+
+  static LogMessageFormatter newFloggerFormatter(Options options) {
     return new FormatterAdapter(
-        FloggerPlugin.instantiate(MessageFormatter.class, formatterName, options));
+        FloggerPlugin.instantiate(
+            MessageFormatter.class,
+            options,
+            Map.of("default", MessageFormatter::getDefaultFormatter)));
   }
 
-  static List<MetadataKey<?>> loadIgnoredMetadataKeys(Options options) {
-    return options.getValueArray("ignored_metadata", MessageFormatter::loadKey);
-  }
+  /** Formats the log message and metadata into the given buffer. */
+  void append(LogData logData, MetadataProcessor metadata, StringBuilder buffer);
 
-  private static MetadataKey<?> loadKey(String keyName) {
-    // Expected: "foo.bar.Class#Field"
-    int idx = keyName.indexOf('#');
-    if (idx == -1) {
-      throw new IllegalStateException("Invalid metadata key name: " + keyName);
-    }
-    String className = keyName.substring(0, idx);
-    String fieldName = keyName.substring(idx + 1);
-    try {
-      return (MetadataKey<?>) Class.forName(className).getDeclaredField(fieldName).get(null);
-    } catch (Exception e) {
-      throw new IllegalStateException("Cannot load metadata key: " + keyName, e);
-    }
-  }
-
-  /**
-   * Returns a formatted representation of the log message and metadata.
-   *
-   * <p>By default this method just returns:
-   *
-   * <pre>{@code append(logData, metadata, new StringBuilder()).toString()}</pre>
-   *
-   * <p>Formatter implementations may be able to implement it more efficiently (e.g. if they can
-   * safely detect when no formatting is required).
-   */
-  default String format(LogData logData, MetadataProcessor metadata) {
-    return append(logData, metadata, new StringBuilder()).toString();
-  }
-
-  /**
-   * Formats the log message and metadata into the given buffer.
-   *
-   * @return the given buffer for method chaining.
-   */
-  StringBuilder append(LogData logData, MetadataProcessor metadata, StringBuilder buffer);
-
-  static LogMessageFormatter getDefaultFormatter(Options options) {
-    List<MetadataKey<?>> keysToIgnore = loadIgnoredMetadataKeys(options);
+  private static MessageFormatter getDefaultFormatter(Options options) {
+    List<MetadataKey<?>> keysToIgnore = options.getValueArray("metadata.ignore", RenameThisClass::loadMetadataKey);
     if (keysToIgnore.isEmpty()) {
-      return SimpleMessageFormatter.getDefaultFormatter();
+      return SimpleMessageFormatter.getDefaultFormatter()::append;
     } else {
       MetadataKey<?>[] keys = keysToIgnore.toArray(MetadataKey<?>[]::new);
-      return SimpleMessageFormatter.getSimpleFormatterIgnoring(keys);
+      return SimpleMessageFormatter.getSimpleFormatterIgnoring(keys)::append;
     }
   }
 
@@ -76,13 +40,9 @@ public interface MessageFormatter {
     }
 
     @Override
-    public String format(LogData logData, MetadataProcessor metadata) {
-      return formatter.format(logData, metadata);
-    }
-
-    @Override
     public StringBuilder append(LogData logData, MetadataProcessor metadata, StringBuilder buffer) {
-      return formatter.append(logData, metadata, buffer);
+      formatter.append(logData, metadata, buffer);
+      return buffer;
     }
   }
 }

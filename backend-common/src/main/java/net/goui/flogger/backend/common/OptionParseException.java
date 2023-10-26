@@ -5,7 +5,7 @@ public final class OptionParseException extends IllegalStateException {
     this(String.format("cannot parse option %s as %s from '%s'", fqn, type, value), e);
   }
 
-  OptionParseException(String message, Object... args) {
+  public OptionParseException(String message, Object... args) {
     super(String.format(message, args));
   }
 }

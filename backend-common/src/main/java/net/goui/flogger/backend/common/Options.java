@@ -208,7 +208,8 @@ public class Options {
 
   // ------------------------------------------------------------------------------------
 
-  private static final String BANNED_CHARS = ",$";
+  // '.' is not banned here, since this relates to names like "foo.bar".
+  private static final String BANNED_CHARS = "$,/|\\{}()[]";
 
   // Names are "foo.bar", no empty segments.
   private static String checkName(String name) {
@@ -222,12 +223,12 @@ public class Options {
       throw new IllegalArgumentException("Option names must not contain empty segments");
     }
     if (name.chars().anyMatch(c -> BANNED_CHARS.indexOf(c) != -1)) {
-      String listOfBadChars =
+      String badChars =
           BANNED_CHARS
               .codePoints()
               .mapToObj(Character::toString)
               .collect(Collectors.joining("', '", "'", "'"));
-      throw new IllegalArgumentException("Option names must not contain any of: " + listOfBadChars);
+      throw new IllegalArgumentException("Option names must not contain any of: " + badChars);
     }
     return name;
   }

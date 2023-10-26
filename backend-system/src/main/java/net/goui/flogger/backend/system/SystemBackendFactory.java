@@ -25,21 +25,21 @@ public class SystemBackendFactory extends BackendFactory {
 
   // Only called by SystemLogRecord.
   static LogMessageFormatter getFormatter() {
-    return LazyFactory.INSTANCE.formatter;
+    return LazyFactory.INSTANCE.backendFormatter;
   }
 
   static final class LazyFactory {
     static final LazyFactory INSTANCE = new LazyFactory();
 
     private final NamingStrategy namingStrategy;
-    private final LogMessageFormatter formatter;
+    private final LogMessageFormatter backendFormatter;
 
     LazyFactory() {
       // Must not call any code which might risk triggering reentrant Flogger logging.
       LogManager logManager = LogManager.getLogManager();
       Options options = Options.of(logManager::getProperty).getOptions("flogger");
       this.namingStrategy = NamingStrategy.from(options.getOptions("logger_naming"));
-      this.formatter = MessageFormatter.from(options.getOptions("message_formatter"));
+      this.backendFormatter = MessageFormatter.newFloggerFormatter(options.getOptions("message_formatter"));
     }
 
     LoggerBackend create(String loggingClassName) {
