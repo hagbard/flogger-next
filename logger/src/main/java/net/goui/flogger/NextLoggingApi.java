@@ -1,4 +1,4 @@
-package net.goui.flogger.next;
+package net.goui.flogger;
 
 import com.google.common.flogger.GoogleLoggingApi;
 import java.lang.StringTemplate.Processor;

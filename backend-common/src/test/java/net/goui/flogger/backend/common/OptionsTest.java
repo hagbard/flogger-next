@@ -27,17 +27,6 @@ public class OptionsTest {
     assertThat(Options.isAnyOf("foo", "fooo")).isFalse();
   }
 
-  private static Map.Entry<String, String> kvp(String key, String value) {
-    return Maps.immutableEntry(key, value);
-  }
-
-  @SafeVarargs
-  private static Options options(Map.Entry<String, String>... e) {
-    ImmutableMap<String, String> map =
-        Arrays.stream(e).collect(toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
-    return Options.of(map::get);
-  }
-
   @Test
   public void badNames() {
     Options opts = options();
@@ -55,7 +44,7 @@ public class OptionsTest {
         .isEqualTo("Option names must not contain empty segments");
     assertThat(assertThrows(IllegalArgumentException.class, () -> opts.get("foo,bar")))
         .hasMessageThat()
-        .isEqualTo("Option names must not contain any of: ',', '$'");
+        .contains("Option names must not contain any of:");
   }
 
   @Test
@@ -70,9 +59,9 @@ public class OptionsTest {
   public void get_withAlias() {
     Options opts =
         options(
-            kvp("foo", "$alias"),
+            kvp("foo", "@alias"),
             kvp("alias.bar", "inherited alias"),
-            kvp("foo.baz", "$direct.alias"),
+            kvp("foo.baz", "@direct.alias"),
             kvp("direct.alias", "direct alias"));
     assertThat(opts.get("foo.bar")).hasValue("inherited alias");
     assertThat(opts.get("foo.baz")).hasValue("direct alias");
@@ -83,9 +72,9 @@ public class OptionsTest {
   public void get_infiniteLoop() {
     Options opts =
         options(
-            kvp("batman", "$adam.west"),
-            kvp("adam.west", "$bruce_wayne"),
-            kvp("bruce_wayne", "$batman"));
+            kvp("batman", "@adam.west"),
+            kvp("adam.west", "@bruce_wayne"),
+            kvp("bruce_wayne", "@batman"));
     var e = assertThrows(OptionParseException.class, () -> opts.get("batman"));
     assertThat(e).hasMessageThat().contains("--> adam.west");
     assertThat(e).hasMessageThat().contains("--> bruce_wayne");
@@ -97,8 +86,6 @@ public class OptionsTest {
     // And fails when getting via child options.
     Options adam = opts.getOptions("adam");
     assertThrows(OptionParseException.class, () -> adam.get("west"));
-
-
   }
 
   @Test
@@ -118,7 +105,7 @@ public class OptionsTest {
   public void getOptions_withAliases() {
     Options opts =
         options(
-            kvp("foo", "$bar, $baz"),
+            kvp("foo", "@bar, @baz"),
             kvp("foo.xxx", "override in foo"),
             kvp("bar.xxx", "hidden by foo"),
             kvp("baz.yyy", "inherit from baz"));
@@ -138,7 +125,7 @@ public class OptionsTest {
             kvp("foo.bar.0.yyy", "first option other value"),
             kvp("foo.bar.1.xxx", "second option value"),
             kvp("foo.bar.1.zzz", "second option other value"),
-            kvp("foo.bar.2", "$alias"),
+            kvp("foo.bar.2", "@alias"),
             kvp("foo.bar.2.xxx", "third option value"),
             kvp("alias.yyy", "third option aliased value"));
     List<Options> arr = opts.getOptionsArray("foo.bar");
@@ -153,10 +140,10 @@ public class OptionsTest {
 
   @Test
   public void getString() {
-    Options opts = options(kvp("foo", "bar"), kvp("bar", "$foo"), kvp("baz", "$$foo"));
+    Options opts = options(kvp("foo", "bar"), kvp("bar", "@foo"), kvp("baz", "@@foo"));
     assertThat(opts.getString("foo", "")).isEqualTo("bar");
     assertThat(opts.getString("bar", "")).isEqualTo("bar");
-    assertThat(opts.getString("baz", "")).isEqualTo("$foo");
+    assertThat(opts.getString("baz", "")).isEqualTo("@foo");
     // Disallow null default values (even if the value is present).
     assertThrows(NullPointerException.class, () -> opts.getString("foo", null));
   }
@@ -176,7 +163,7 @@ public class OptionsTest {
   public void getStringArray_withAlias() {
     Options opts =
         options(
-            kvp("foo.bar", "$baz"),
+            kvp("foo.bar", "@baz"),
             kvp("baz.size", "3"),
             kvp("baz.0", "first"),
             kvp("baz.1", "second"),
@@ -290,5 +277,16 @@ public class OptionsTest {
 
     assertThrows(OptionParseException.class, () -> opts.getValue("foo.y", Long::parseLong));
     assertThat(opts.getValue("foo.missing", String::trim)).isEmpty();
+  }
+
+  private static Map.Entry<String, String> kvp(String key, String value) {
+    return Maps.immutableEntry(key, value);
+  }
+
+  @SafeVarargs
+  private static Options options(Map.Entry<String, String>... e) {
+    ImmutableMap<String, String> map =
+        Arrays.stream(e).collect(toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
+    return Options.of(map::get);
   }
 }

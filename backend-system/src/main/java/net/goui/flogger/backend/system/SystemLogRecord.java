@@ -33,7 +33,7 @@ public final class SystemLogRecord extends AbstractLogRecord implements FloggerL
   // Since the formatter is a function of our static options, it's effectively a singleton, so avoid
   // needing to add another field per log record by getting it from the factory.
   @Override
-  protected LogMessageFormatter getLogMessageFormatter() {
+  public LogMessageFormatter getLogMessageFormatter() {
     return SystemBackendFactory.getFormatter();
   }
 }

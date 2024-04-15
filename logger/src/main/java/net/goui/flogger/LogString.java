@@ -1,4 +1,4 @@
-package net.goui.flogger.next;
+package net.goui.flogger;
 
 /** API for logging a {@link StringTemplate}. */
 public interface LogString {

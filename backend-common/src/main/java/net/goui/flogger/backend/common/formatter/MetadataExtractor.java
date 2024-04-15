@@ -1,7 +1,10 @@
 package net.goui.flogger.backend.common.formatter;
 
+
 import com.google.common.flogger.MetadataKey;
 import com.google.common.flogger.MetadataKey.KeyValueHandler;
+import com.google.common.flogger.backend.LogData;
+import com.google.common.flogger.backend.LogMessageFormatter;
 import com.google.common.flogger.backend.MetadataHandler;
 import com.google.common.flogger.backend.MetadataProcessor;
 import java.util.HashMap;
@@ -10,9 +13,9 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import net.goui.flogger.backend.common.MessageFormatter;
+import java.util.function.BiConsumer;
+import net.goui.flogger.backend.common.MetadataKeyLoader;
 import net.goui.flogger.backend.common.Options;
-import net.goui.flogger.backend.common.RenameThisClass;
 
 final class MetadataExtractor {
   private static final MetadataHandler.RepeatedValueHandler<Object, KeyCollector>
@@ -21,10 +24,11 @@ final class MetadataExtractor {
       (k, v, c) -> k.safeEmit(v, c.getHandler(k));
 
   private final MetadataHandler<KeyCollector> keyExtractor;
-  private final MessageFormatter metadataFormatter;
+  private final LogMessageFormatter metadataFormatter;
   private final Map<MetadataKey<?>, Map<String, String>> labelTable;
 
-  MetadataExtractor(Options options, Set<String> keyNames) {
+  MetadataExtractor(
+      Options options, Set<String> keyNames, BiConsumer<StringBuilder, Object> valueAppender) {
     this.labelTable = new IdentityHashMap<>();
     for (String keyName : keyNames) {
       KeySpec key =
@@ -35,21 +39,19 @@ final class MetadataExtractor {
           .computeIfAbsent(key.getMetadataKey(), k -> new HashMap<>())
           .put(key.getLabel(), keyName);
     }
+
     MetadataHandler.Builder<KeyCollector> extractor = MetadataHandler.builder((k, v, m) -> {});
-    labelTable
-        .keySet()
-        .forEach(
-            key -> {
-              if (key.canRepeat()) {
-                extractor.addRepeatedHandler(key, REPEATED_VALUE_HANDLER);
-              } else {
-                extractor.addHandler(key, SINGLE_VALUE_HANDLER);
-              }
-            });
+    for (MetadataKey<?> key : labelTable.keySet()) {
+      if (key.canRepeat()) {
+        extractor.addRepeatedHandler(key, REPEATED_VALUE_HANDLER);
+      } else {
+        extractor.addHandler(key, SINGLE_VALUE_HANDLER);
+      }
+    }
     this.keyExtractor = extractor.build();
 
     List<MetadataKey<?>> explicitlyIgnoredKeys =
-        options.getValueArray("ignore", RenameThisClass::loadMetadataKey);
+        options.getValueArray("ignore", MetadataKeyLoader::loadMetadataKey);
     Set<MetadataKey<?>> allIgnoredKeys = new HashSet<>(explicitlyIgnoredKeys);
     allIgnoredKeys.addAll(labelTable.keySet());
 
@@ -58,8 +60,7 @@ final class MetadataExtractor {
             .setDefaultRepeatedHandler(MetadataKey::safeEmitRepeated)
             .ignoring(allIgnoredKeys)
             .build();
-    this.metadataFormatter =
-        (d, m, b) -> m.process(handler, (k, v) -> b.append(k).append('=').append(v).append(' '));
+    this.metadataFormatter = new MetadataFormatter(handler, valueAppender);
   }
 
   Map<String, Object> extractKeys(MetadataProcessor metadata) {
@@ -68,8 +69,35 @@ final class MetadataExtractor {
     return collector.getKeyMap();
   }
 
-  MessageFormatter getMetadataFormatter() {
+  LogMessageFormatter getMetadataFormatter() {
     return metadataFormatter;
+  }
+
+  private static class MetadataFormatter extends LogMessageFormatter {
+    private final MetadataHandler<KeyValueHandler> handler;
+    private final BiConsumer<StringBuilder, Object> valueAppender;
+
+    public MetadataFormatter(
+        MetadataHandler<KeyValueHandler> handler, BiConsumer<StringBuilder, Object> valueAppender) {
+      this.handler = handler;
+      this.valueAppender = valueAppender;
+    }
+
+    @Override
+    public StringBuilder append(LogData logData, MetadataProcessor metadata, StringBuilder buffer) {
+      int start = buffer.length();
+      metadata.process(
+          handler,
+          (k, v) -> {
+            buffer.append(k).append('=');
+            valueAppender.accept(buffer, v);
+            buffer.append(' ');
+          });
+      if (buffer.length() > start) {
+        buffer.setLength(buffer.length() - 1);
+      }
+      return buffer;
+    }
   }
 
   private class KeyCollector implements KeyValueHandler {
@@ -97,27 +125,27 @@ final class MetadataExtractor {
 
   private static class KeySpec {
     static KeySpec parse(String spec) {
-      // '<metadataKey#field>:<label>' OR 'tag:<label>'
-      int idx = spec.indexOf(':');
-      if (idx == -1) {
-        throw new IllegalArgumentException(
-            "invalid key specification (expected '<class#field>:<label>'): " + spec);
+      // TODO: Support Tags too via special 'tag:<label>'
+      // '<metadataKey#field>', '<metadataKey#field>:<label>'
+      int labelIdx = spec.indexOf(':');
+      String label = "";
+      if (labelIdx >= 0) {
+        label = spec.substring(labelIdx + 1);
+        spec = spec.substring(0, labelIdx);
       }
-      String keyField = spec.substring(0, idx);
-      String label = spec.substring(idx + 1);
-      return new KeySpec(label, RenameThisClass.loadMetadataKey(keyField));
+      return new KeySpec(MetadataKeyLoader.loadMetadataKey(spec), label);
     }
 
-    private final String label;
     private final MetadataKey<?> metadataKey;
+    private final String label;
 
-    KeySpec(String label, MetadataKey<?> metadataKey) {
-      this.label = label;
+    KeySpec(MetadataKey<?> metadataKey, String label) {
       this.metadataKey = metadataKey;
+      this.label = label;
     }
 
     String getLabel() {
-      return label;
+      return label.isEmpty() ? metadataKey.getLabel() : label;
     }
 
     MetadataKey<?> getMetadataKey() {

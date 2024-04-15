@@ -1,8 +1,10 @@
-package net.goui.flogger.next;
+package net.goui.flogger;
 
 import com.google.common.flogger.AbstractLogger;
 import com.google.common.flogger.GoogleLogContext;
 import com.google.common.flogger.GoogleLoggingApi;
+import com.google.common.flogger.LazyArg;
+import com.google.common.flogger.LogSite;
 import com.google.common.flogger.backend.LoggerBackend;
 import com.google.common.flogger.backend.Platform;
 import java.util.logging.Level;
@@ -28,9 +30,12 @@ import java.util.logging.Level;
 public final class FluentLogger extends AbstractLogger<NextLoggingApi> {
   private static final NoOp NO_OP = new NoOp();
 
+  private final String localLoggerName;
+
   // Visible for testing only.
-  FluentLogger(LoggerBackend backend) {
+  FluentLogger(String localLoggerName, LoggerBackend backend) {
     super(backend);
+    this.localLoggerName = localLoggerName;
   }
 
   /**
@@ -41,15 +46,24 @@ public final class FluentLogger extends AbstractLogger<NextLoggingApi> {
     // NOTE: It is _vital_ that the call to "caller finder" is made directly inside the static
     // factory method. See getCallerFinder() for more information.
     String loggingClass = Platform.getCallerFinder().findLoggingClass(FluentLogger.class);
-    return new FluentLogger(Platform.getBackend(loggingClass));
+    return new FluentLogger(loggingClass, Platform.getBackend(loggingClass));
   }
 
   @Override
   public NextLoggingApi at(Level level) {
     // Standard setup for creating a log context (copied com.google.common.flogger.FluentLogger).
     boolean isLoggable = isLoggable(level);
-    boolean isForced = Platform.shouldForceLogging(getName(), level, isLoggable);
+    boolean isForced = Platform.shouldForceLogging(localLoggerName, level, isLoggable);
     return (isLoggable | isForced) ? new Context(level, isForced) : NO_OP;
+  }
+
+  // IMPORTANT: It is necessary for each logger to return its class name in order to interact with
+  // LogLevelMap consistently, but this doesn't have to come from a unique LoggerBackend instance.
+  // By returning the "local" logger name here, we permit backend instances to be shared, which
+  // reduces static initialization overhead (no need to allocate a new backend each time).
+  @Override
+  protected String getName() {
+    return localLoggerName;
   }
 
   // Extended log context (extending from GoogleLogContext for any extra APIs).
@@ -78,8 +92,17 @@ public final class FluentLogger extends AbstractLogger<NextLoggingApi> {
     public LogString process(StringTemplate template) {
       // Until Flogger has a better notion of passing "pre-processed" log messages to the backend,
       // this will have to do.
-      return () -> log("%s", LogTemplate.lazilyInterpolate(template));
+      return () -> {
+        // Lambdas get executed in a special stack environment, but this works if skip is 0.
+        // Otherwise, it could also be evaluate outside the lambda just as easily.
+        LogSite logSite = Platform.getCallerFinder().findLogSite(Context.class, /* skip= */ 0);
+        withInjectedLogSite(logSite).log("%s", FluentLogger.lazilyInterpolate(template));
+      };
     }
+  }
+
+  static LazyArg<String> lazilyInterpolate(StringTemplate template) {
+    return () -> new LogTemplate(template).interpolate();
   }
 
   private static class NoOp extends GoogleLoggingApi.NoOp<NextLoggingApi>

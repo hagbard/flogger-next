@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  * <p>This class should be used only during module factory initialization and should not need to be
  * performant.
  */
-public class Options {
+public final class Options {
   public static Options of(UnaryOperator<String> lookupFn) {
     return new Options(lookupFn, "");
   }
@@ -66,7 +66,7 @@ public class Options {
    * <p>For example, with the properties:
    *
    * <pre>{@code
-   * foo = $alias
+   * foo = @alias
    * foo.bar.xxx = hello
    * alias.bar.yyy = world
    * }</pre>
@@ -209,10 +209,10 @@ public class Options {
   // ------------------------------------------------------------------------------------
 
   // '.' is not banned here, since this relates to names like "foo.bar".
-  private static final String BANNED_CHARS = "$,/|\\{}()[]";
+  private static final String BANNED_CHARS = "@$,/|\\{}()[]";
 
-  // Names are "foo.bar", no empty segments.
-  private static String checkName(String name) {
+  /** */
+  public static String checkName(String name) {
     if (name.isEmpty()) {
       throw new IllegalArgumentException("Option names must not be empty");
     }
@@ -256,14 +256,14 @@ public class Options {
     checkNoRecursion(fqn, aliases);
     String v = getRaw(fqn);
     if (v != null) {
-      if (!v.startsWith("$")) {
-        // Normal value with no leading '$' (e.g. "foo").
+      if (!v.startsWith("@")) {
+        // Normal value with no leading '@' (e.g. "foo").
         return op.apply(fqn, v);
       }
-      // Remove leading '$': Either get alias, or real value starting with '$'.
+      // Remove leading '@': Either get alias, or real value starting with '@'.
       String valueOrAlias = v.substring(1);
-      if (valueOrAlias.startsWith("$")) {
-        // Value with escaped leading '$' (e.g. "$$foo" -> "$foo").
+      if (valueOrAlias.startsWith("@")) {
+        // Value with escaped leading '@' (e.g. "@@foo" -> "@foo").
         return op.apply(fqn, valueOrAlias);
       }
       // Resolve an aliased value directly (only one alias is currently allowed here).
@@ -274,14 +274,14 @@ public class Options {
     while (lastDot > 0) {
       String aliasStr = getRaw(fqn.substring(0, lastDot));
       if (aliasStr != null) {
-        // Handle an alias list of the form "$foo.bar, $baz"
+        // Handle an alias list of the form "@foo.bar, @baz"
         String childSuffix = fqn.substring(lastDot);
         for (String alias : aliasStr.split(",")) {
-          // Handle a single alias of the form "$foo.bar".
+          // Handle a single alias of the form "@foo.bar".
           alias = alias.trim();
-          if (!alias.startsWith("$")) {
+          if (!alias.startsWith("@")) {
             throw new OptionParseException(
-                "Option aliases must start with '$' (found alias '%s' for group '%s')", alias, fqn);
+                "Option aliases must start with '@' (found alias '%s' for group '%s')", alias, fqn);
           }
           // Resolve an aliased group recursively (adding any trailing ".bar" suffix related to the
           // current position in the current fully qualified name).

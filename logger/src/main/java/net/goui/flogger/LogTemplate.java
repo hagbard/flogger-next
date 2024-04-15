@@ -1,4 +1,4 @@
-package net.goui.flogger.next;
+package net.goui.flogger;
 
 import com.google.common.flogger.LazyArg;
 import java.util.ArrayList;
@@ -30,10 +30,6 @@ final class LogTemplate implements StringTemplate {
       resolved.add(value instanceof LazyArg ? ((LazyArg<?>) value).evaluate() : value);
     }
     return resolved;
-  }
-
-  public static LazyArg<String> lazilyInterpolate(StringTemplate template) {
-    return () -> new LogTemplate(template).interpolate();
   }
 
   @Override

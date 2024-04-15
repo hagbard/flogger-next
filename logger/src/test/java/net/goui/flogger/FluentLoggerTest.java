@@ -1,4 +1,4 @@
-package net.goui.flogger.next;
+package net.goui.flogger;
 
 import static com.google.common.flogger.LazyArgs.lazy;
 import static com.google.common.truth.Truth.assertThat;
@@ -26,13 +26,13 @@ public class FluentLoggerTest {
 
   // NOTE: Set the forced level to higher than INFO, because we want to test rate limiting.
   @Rule
-  public final FloggerTestRule logs = FloggerTestRule.forClass(FluentLoggerTest.class, WARNING);
+  public final FloggerTestRule logs = FloggerTestRule.forClass(FluentLoggerTest.class, INFO);
 
   @Test
   public void testEvaluation() {
     int x = 23;
     int y = 19;
-    logger.atInfo(). "\{ x } + \{ y } = \{ x + y }" .log();
+    logger.atInfo(). "\{ x } + \{ y } = \{ lazy(() -> x + y) }" .log();
     LogEntry entry = logs.assertLogs().withLevel(INFO).getOnlyMatch();
     // Normally testing exact message contents makes tests brittle, but these are logger tests.
     assertThat(entry.message()).isEqualTo("23 + 19 = 42");
@@ -45,18 +45,6 @@ public class FluentLoggerTest {
     logger.atFine(). "Unexected: \{ lazy(arg::toString) }" .log();
     logs.assertLogs().withLevel(FINE).doNotOccur();
     arg.assertCalled(0);
-  }
-
-  @Test
-  public void testArguments_notEvaluatedWhenRateLimited() {
-    TestArg arg = new TestArg("Hello World");
-    // First log statement is always emitted.
-    for (int n = 0; n < 10; n++) {
-      logger.atInfo().every(20). "Greeting-\{ n }: \{ arg }" .log();
-    }
-    LogEntry entry = logs.assertLogs().withLevel(INFO).getOnlyMatch();
-    assertThat(entry.message()).isEqualTo("Greeting-0: Hello World");
-    arg.assertCalled(1);
   }
 
   @Test

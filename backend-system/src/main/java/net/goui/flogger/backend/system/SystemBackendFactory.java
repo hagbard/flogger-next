@@ -7,9 +7,9 @@ import com.google.common.flogger.backend.Metadata;
 import com.google.common.flogger.backend.Platform;
 import com.google.common.flogger.backend.system.AbstractBackend;
 import com.google.common.flogger.backend.system.BackendFactory;
+import java.util.List;
 import java.util.logging.LogManager;
-import net.goui.flogger.backend.common.MessageFormatter;
-import net.goui.flogger.backend.common.NamingStrategy;
+import net.goui.flogger.backend.common.AbstractBackendFactory;
 import net.goui.flogger.backend.common.Options;
 
 public class SystemBackendFactory extends BackendFactory {
@@ -25,25 +25,34 @@ public class SystemBackendFactory extends BackendFactory {
 
   // Only called by SystemLogRecord.
   static LogMessageFormatter getFormatter() {
-    return LazyFactory.INSTANCE.backendFormatter;
+    return LazyFactory.INSTANCE.getBackendFormatter();
   }
 
-  static final class LazyFactory {
+  private static final class LazyFactory extends AbstractBackendFactory<Backend> {
     static final LazyFactory INSTANCE = new LazyFactory();
 
-    private final NamingStrategy namingStrategy;
-    private final LogMessageFormatter backendFormatter;
-
     LazyFactory() {
-      // Must not call any code which might risk triggering reentrant Flogger logging.
-      LogManager logManager = LogManager.getLogManager();
-      Options options = Options.of(logManager::getProperty).getOptions("flogger");
-      this.namingStrategy = NamingStrategy.from(options.getOptions("logger_naming"));
-      this.backendFormatter = MessageFormatter.newFloggerFormatter(options.getOptions("message_formatter"));
+      super(getOptions(), Backend::new);
     }
 
-    LoggerBackend create(String loggingClassName) {
-      return new Backend(namingStrategy.getLoggerName(loggingClassName));
+    private static Options getOptions() {
+      // Must not call any code which might risk triggering reentrant Flogger logging.
+      return Options.of(LogManager.getLogManager()::getProperty).getOptions("flogger");
+    }
+
+    /**
+     * A heuristic to find the list of loggers configured in the log manager. Without a general way
+     * to read the set of properties, we have to heuristically determine the properties based on the
+     * known set of loggers and then confirm they were in the property file (rather than being
+     * configured programmatically).
+     *
+     * <p>This is called back by the parent constructor and should be called only once, early in the
+     * application's life.
+     */
+    @Override
+    protected List<String> getSystemRoots() {
+      // Must not call any code which might risk triggering reentrant Flogger logging.
+      return FloggerConfig.getSystemRoots();
     }
   }
 
