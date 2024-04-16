@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Extra logging related to initialization of Log4j.
+ Set to debug or trace if log4j initialization is failing. -->
+<Configuration status="debug">
+    <Properties>
+
+        <Property name="flogger.properties">Filename goes here</Property>
+        <Property name="flogger.backend_naming.retain_at_least">4</Property>
+        <Property name="flogger.message_formatter.impl">pattern</Property>
+        <Property name="flogger.message_formatter.pattern">%{timestamp} %{level}[%{location}] %{key.foo/(foo:/) }%{message}%{metadata/ [/]}</Property>
+        <Property name="flogger.message_formatter.metadata.key.foo">net.goui.flogger.backend.log4j.Log4jBackendFactoryTest$Key#FOO</Property>
+        <Property name="flogger.message_formatter.metadata.ignore">@myapp.ignored_keys</Property>
+        <Property name="myapp.ignored_keys.size">2</Property>
+        <Property name="myapp.ignored_keys.0">com.google.common.flogger.LogContext$Key#LOG_EVERY_N</Property>
+        <Property name="myapp.ignored_keys.1">com.google.common.flogger.LogContext$Key#LOG_AT_MOST_EVERY</Property>
+    </Properties>
+    <Appenders>
+        <!-- Console appender configuration -->
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />
+        </Console>
+    </Appenders>
+    <Loggers>
+        <!-- Root logger referring to console appender -->
+        <Root level="info" additivity="false">
+            <AppenderRef ref="console" />
+        </Root>
+    </Loggers>
+</Configuration>
