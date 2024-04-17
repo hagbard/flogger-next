@@ -3,13 +3,14 @@ package net.goui.flogger.backend.common.formatter;
 import com.google.common.flogger.backend.MessageUtils;
 import java.util.function.BiConsumer;
 
-final class ValueAppender {
-
-  static BiConsumer<StringBuilder, Object> defaultAppender() {
-    return ValueAppender::appendDefault;
+/** Simple helper to append metadata values during formatting is a JSON compatible way. */
+final class JsonValueAppender {
+  /** Returns an appender used by default formatting for metadata. */
+  static BiConsumer<StringBuilder, Object> jsonAppender() {
+    return JsonValueAppender::append;
   }
 
-  private static void appendDefault(StringBuilder out, Object value) {
+  private static void append(StringBuilder out, Object value) {
     if (value != null) {
       if (value instanceof Number || value instanceof Boolean) {
         out.append(value);
@@ -34,4 +35,6 @@ final class ValueAppender {
     out.append(s, start, idx);
     return out;
   }
+
+  private JsonValueAppender() {}
 }

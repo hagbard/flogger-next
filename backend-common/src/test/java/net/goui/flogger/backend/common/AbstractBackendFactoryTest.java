@@ -17,7 +17,7 @@ import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class AbstractBackendFactoryTest {
-  public static final class Keys {
+  public static final class Key {
     public static final MetadataKey<String> FOO = MetadataKey.single("foo", String.class);
     public static final MetadataKey<Integer> BAR = MetadataKey.single("bar", Integer.class);
   }
@@ -121,15 +121,20 @@ public class AbstractBackendFactoryTest {
 
   @Test
   public void getDefaultFormatter() {
-    TestFactory factory = new TestFactory(Options.of(s -> null));
+    // Pattern formatter is tested thoroughly elsewhere, so just test the setup here.
+    ImmutableMap<String, String> opts =
+        ImmutableMap.of(
+            "message_formatter.pattern",
+            "%{message}%{metadata/ {/\\}}");
+    TestFactory factory = new TestFactory(Options.of(opts::get));
 
     FakeLogData data =
-        FakeLogData.of("<message>").addMetadata(Keys.FOO, "xyz").addMetadata(Keys.BAR, 42);
+        FakeLogData.of("<message>").addMetadata(Key.FOO, "xyz").addMetadata(Key.BAR, 42);
     MetadataProcessor metadata = MetadataProcessor.forScopeAndLogSite(data.getMetadata(), empty());
-    assertThat(factory.getBackendFormatter().format(data, metadata))
-        .isEqualTo("<message> [CONTEXT foo=\"xyz\" bar=42 ]");
-    assertThat(factory.getBackendFormatter().getClass().getName())
-        .startsWith("com.google.common.flogger");
+    assertThat(factory.getMessageFormatter().format(data, metadata))
+        .isEqualTo("<message> {foo=\"xyz\" bar=42}");
+    assertThat(factory.getMessageFormatter().getClass().getName())
+        .startsWith("net.goui.flogger.backend");
   }
 
   @Test
@@ -139,33 +144,13 @@ public class AbstractBackendFactoryTest {
             "message_formatter.metadata.ignore.size",
             "1",
             "message_formatter.metadata.ignore.0",
-            Keys.class.getName() + "#FOO");
+            Key.class.getName() + "#FOO");
     TestFactory factory = new TestFactory(Options.of(opts::get));
 
     FakeLogData data =
-        FakeLogData.of("<message>").addMetadata(Keys.FOO, "xyz").addMetadata(Keys.BAR, 42);
+        FakeLogData.of("<message>").addMetadata(Key.FOO, "xyz").addMetadata(Key.BAR, 42);
     MetadataProcessor metadata = MetadataProcessor.forScopeAndLogSite(data.getMetadata(), empty());
-    assertThat(factory.getBackendFormatter().format(data, metadata)).isEqualTo("<message> [CONTEXT bar=42 ]");
-  }
-
-  @Test
-  public void getPatternFormatter() {
-    // Pattern formatter is tested thoroughly elsewhere, so just test the setup here.
-    ImmutableMap<String, String> opts =
-        ImmutableMap.of(
-            "message_formatter.impl",
-            "pattern",
-            "message_formatter.pattern",
-            "%{message}%{metadata/ {/\\}}");
-    TestFactory factory = new TestFactory(Options.of(opts::get));
-
-    FakeLogData data =
-        FakeLogData.of("<message>").addMetadata(Keys.FOO, "xyz").addMetadata(Keys.BAR, 42);
-    MetadataProcessor metadata = MetadataProcessor.forScopeAndLogSite(data.getMetadata(), empty());
-    assertThat(factory.getBackendFormatter().format(data, metadata))
-        .isEqualTo("<message> {foo=\"xyz\" bar=42}");
-    assertThat(factory.getBackendFormatter().getClass().getName())
-        .startsWith("net.goui.flogger.backend");
+    assertThat(factory.getMessageFormatter().format(data, metadata)).isEqualTo("<message> [CONTEXT bar=42 ]");
   }
 
   @Test
@@ -180,16 +165,16 @@ public class AbstractBackendFactoryTest {
             "message_formatter.metadata.ignore.size",
             "1",
             "message_formatter.metadata.ignore.0",
-            Keys.class.getName() + "#FOO");
+            Key.class.getName() + "#FOO");
     TestFactory factory = new TestFactory(Options.of(opts::get));
 
     FakeLogData data =
-        FakeLogData.of("<message>").addMetadata(Keys.FOO, "xyz").addMetadata(Keys.BAR, 42);
+        FakeLogData.of("<message>").addMetadata(Key.FOO, "xyz").addMetadata(Key.BAR, 42);
     MetadataProcessor metadata = MetadataProcessor.forScopeAndLogSite(data.getMetadata(), empty());
 
-    assertThat(factory.getBackendFormatter().format(data, metadata))
+    assertThat(factory.getMessageFormatter().format(data, metadata))
         .isEqualTo("<message> {bar=42}");
-    assertThat(factory.getBackendFormatter().getClass().getName())
+    assertThat(factory.getMessageFormatter().getClass().getName())
         .startsWith("net.goui.flogger.backend");
   }
 

@@ -25,7 +25,7 @@ public class SystemBackendFactory extends BackendFactory {
 
   // Only called by SystemLogRecord.
   static LogMessageFormatter getFormatter() {
-    return LazyFactory.INSTANCE.getBackendFormatter();
+    return LazyFactory.INSTANCE.getMessageFormatter();
   }
 
   private static final class LazyFactory extends AbstractBackendFactory<Backend> {
@@ -57,7 +57,7 @@ public class SystemBackendFactory extends BackendFactory {
   }
 
   public static class Backend extends AbstractBackend {
-    protected Backend(String loggerName) {
+    Backend(String loggerName) {
       super(loggerName);
     }
 

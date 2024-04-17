@@ -8,15 +8,20 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 
-public final class LoggerBackendCache<T extends LoggerBackend> {
+/**
+ * Weak referenced cache for logger backends, best used when the naming strategy maps many logging
+ * class names to a single backend. This class is thread safe.
+ */
+final class LoggerBackendCache<T extends LoggerBackend> {
   private final Function<String, T> newBackendFn;
   private final ConcurrentMap<String, WeakReference<T>> cache = new ConcurrentHashMap<>();
 
-  public LoggerBackendCache(Function<String, T> newBackendFn) {
+  LoggerBackendCache(Function<String, T> newBackendFn) {
     this.newBackendFn = requireNonNull(newBackendFn);
   }
 
-  public T getBackend(String backendName) {
+  /** Returns a cached backend instance for the given name. */
+  T getBackend(String backendName) {
     WeakReference<T> ref = cache.get(backendName);
     if (ref != null) {
       T cachedBackend = ref.get();

@@ -16,9 +16,9 @@ import net.goui.flogger.backend.common.Options;
  * <h3>Options</h3>
  *
  * <ul>
- *   <li>{@code message_formatter.timestamp.pattern}: String<br>
+ *   <li>{@code flogger.message_formatter.timestamp.pattern}: String<br>
  *       Formats the timestamp using the given {@link DateTimeFormatter} pattern.
- *   <li>{@code message_formatter.timestamp.zone_id}: String<br>
+ *   <li>{@code flogger.message_formatter.timestamp.zone_id}: String<br>
  *       Uses the specified {@link ZoneId} to adjust the timestamp's timezone.
  * </ul>
  */

@@ -8,9 +8,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+/**
+ * Flogger plugin to handle the logging class to backend name mapping.
+ *
+ * <h3>Options</h3>
+ *
+ * <ul>
+ *   <li>{@code flogger.backend_naming.trim_at_least}: Integer<br>
+ *   <li>{@code flogger.backend_naming.retain_at_most}: Integer<br>
+ *   <li>{@code flogger.backend_naming.roots}: String[]<br>
+ *   <li>{@code flogger.backend_naming.use_system_roots}: Boolean<br>
+ * </ul>
+ */
 public final class DefaultNamingStrategy implements NamingStrategy {
   private static final String OPTION_TRIM_AT_LEAST = "trim_at_least";
   private static final String OPTION_RETAIN_AT_MOST = "retain_at_most";
+  private static final String OPTION_ROOTS = "roots";
+  private static final String OPTION_SYSTEM_ROOTS = "system_roots";
 
   private final int trimAtLeast;
   private final int retainAtMost;
@@ -29,9 +43,9 @@ public final class DefaultNamingStrategy implements NamingStrategy {
     this.retainAtMost = unsignedInt(options, OPTION_RETAIN_AT_MOST);
 
     // Can contain trailing ".*.*" style wildcards to denote how many child levels to keep.
-    List<String> explicitRoots = options.getStringArray("roots");
+    List<String> explicitRoots = options.getStringArray(OPTION_ROOTS);
     this.rootExtensions = getRootExtensions(explicitRoots);
-    List<String> systemRoots = options.getStringArray("system_roots");
+    List<String> systemRoots = options.getStringArray(OPTION_SYSTEM_ROOTS);
     // Create the sorted array of root entries. This ordering is vital to correct lookup since,
     // for any given class name, the index of its parent entry cannot come after the insertion
     // index of the class name.

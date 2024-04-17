@@ -15,8 +15,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
-public class PatternFormatterTest {
-  public static class Keys {
+public class DefaultPatternFormatterTest {
+  public static class Key {
     public static final MetadataKey<String> FOO_KEY = MetadataKey.repeated("foo", String.class);
     public static final MetadataKey<Integer> BAR_KEY = MetadataKey.single("bar", Integer.class);
     public static final MetadataKey<Integer> INT_KEY =
@@ -32,15 +32,15 @@ public class PatternFormatterTest {
   @Test
   public void testFormatting_noPattern() {
     Options options = Options.of(s -> null);
-    PatternFormatter fmt = new PatternFormatter(options);
+    DefaultPatternFormatter fmt = new DefaultPatternFormatter(options);
     FakeLogData log = FakeLogData.of("<message>");
 
     assertThat(fmt.format(log, toMetadata(log))).isEqualTo("<message>");
 
-    log.addMetadata(Keys.FOO_KEY, "Hello");
+    log.addMetadata(Key.FOO_KEY, "Hello");
     assertThat(fmt.format(log, toMetadata(log))).isEqualTo("<message> [CONTEXT foo=\"Hello\" ]");
 
-    log.addMetadata(Keys.BAR_KEY, 123);
+    log.addMetadata(Key.BAR_KEY, 123);
     assertThat(fmt.format(log, toMetadata(log)))
         .isEqualTo("<message> [CONTEXT foo=\"Hello\" bar=123 ]");
   }
@@ -48,9 +48,9 @@ public class PatternFormatterTest {
   @Test
   public void testFormatting_escapedMetadata() {
     Options options = Options.of(s -> null);
-    PatternFormatter fmt = new PatternFormatter(options);
+    DefaultPatternFormatter fmt = new DefaultPatternFormatter(options);
 
-    FakeLogData log = FakeLogData.of("<message>").addMetadata(Keys.FOO_KEY, "New\nLine");
+    FakeLogData log = FakeLogData.of("<message>").addMetadata(Key.FOO_KEY, "New\nLine");
     assertThat(fmt.format(log, toMetadata(log)))
         .isEqualTo("<message> [CONTEXT foo=\"New\\nLine\" ]");
   }
@@ -59,9 +59,9 @@ public class PatternFormatterTest {
   public void testFormatting_patternWithDefaults() {
     ImmutableMap<String, String> opts =
         ImmutableMap.of("pattern", "%{timestamp} %{level}[%{location}] %{message}%{metadata/ [/]}");
-    PatternFormatter fmt = new PatternFormatter(Options.of(opts::get));
+    DefaultPatternFormatter fmt = new DefaultPatternFormatter(Options.of(opts::get));
 
-    FakeLogData log = FakeLogData.of("<message>").addMetadata(Keys.BAR_KEY, 42);
+    FakeLogData log = FakeLogData.of("<message>").addMetadata(Key.BAR_KEY, 42);
     assertThat(fmt.format(log, toMetadata(log)))
         .isEqualTo("1970-01-01T00:00:00Z INFO[com.google.FakeClass#fakeMethod] <message> [bar=42]");
   }
@@ -73,13 +73,13 @@ public class PatternFormatterTest {
             "pattern",
             "%{message}%{key.foo/ }%{metadata/ [/]}",
             "metadata.key.foo",
-            Keys.class.getName() + "#FOO_KEY");
-    PatternFormatter fmt = new PatternFormatter(Options.of(opts::get));
+            Key.class.getName() + "#FOO_KEY");
+    DefaultPatternFormatter fmt = new DefaultPatternFormatter(Options.of(opts::get));
 
     FakeLogData log =
         FakeLogData.of("<message>")
-            .addMetadata(Keys.FOO_KEY, "Hello")
-            .addMetadata(Keys.BAR_KEY, 42);
+            .addMetadata(Key.FOO_KEY, "Hello")
+            .addMetadata(Key.BAR_KEY, 42);
     assertThat(fmt.format(log, toMetadata(log))).isEqualTo("<message> \"Hello\" [bar=42]");
   }
 
@@ -90,13 +90,13 @@ public class PatternFormatterTest {
             "pattern",
             "%{message}%{key.bar/ BAR:/}%{metadata/ [/]}",
             "metadata.key.bar",
-            Keys.class.getName() + "#BAR_KEY");
-    PatternFormatter fmt = new PatternFormatter(Options.of(opts::get));
+            Key.class.getName() + "#BAR_KEY");
+    DefaultPatternFormatter fmt = new DefaultPatternFormatter(Options.of(opts::get));
 
     FakeLogData log =
         FakeLogData.of("<message>")
-            .addMetadata(Keys.FOO_KEY, "Hello")
-            .addMetadata(Keys.BAR_KEY, 42);
+            .addMetadata(Key.FOO_KEY, "Hello")
+            .addMetadata(Key.BAR_KEY, 42);
     assertThat(fmt.format(log, toMetadata(log))).isEqualTo("<message> BAR:42 [foo=\"Hello\"]");
   }
 
@@ -109,24 +109,24 @@ public class PatternFormatterTest {
             "pattern",
             "%{message}%{key.dec/ }%{key.hex/=}%{metadata/ [/]}",
             "metadata.key.hex",
-            Keys.class.getName() + "#INT_KEY:hex",
+            Key.class.getName() + "#INT_KEY:hex",
             "metadata.key.dec",
-            Keys.class.getName() + "#INT_KEY:dec");
-    PatternFormatter fmt = new PatternFormatter(Options.of(opts::get));
+            Key.class.getName() + "#INT_KEY:dec");
+    DefaultPatternFormatter fmt = new DefaultPatternFormatter(Options.of(opts::get));
 
-    FakeLogData log = FakeLogData.of("<message>").addMetadata(Keys.INT_KEY, 42);
+    FakeLogData log = FakeLogData.of("<message>").addMetadata(Key.INT_KEY, 42);
     assertThat(fmt.format(log, toMetadata(log))).isEqualTo("<message> 42=\"0x2a\"");
   }
 
   @Test
   public void testFormatting_withRepeatedMetadata() {
     ImmutableMap<String, String> opts = ImmutableMap.of("pattern", "%{message}%{metadata/ [/]}");
-    PatternFormatter fmt = new PatternFormatter(Options.of(opts::get));
+    DefaultPatternFormatter fmt = new DefaultPatternFormatter(Options.of(opts::get));
 
     FakeLogData log =
         FakeLogData.of("<message>")
-            .addMetadata(Keys.FOO_KEY, "Hello")
-            .addMetadata(Keys.FOO_KEY, "Goodbye");
+            .addMetadata(Key.FOO_KEY, "Hello")
+            .addMetadata(Key.FOO_KEY, "Goodbye");
     assertThat(fmt.format(log, toMetadata(log)))
         .isEqualTo("<message> [foo=\"Hello\" foo=\"Goodbye\"]");
   }
@@ -135,7 +135,7 @@ public class PatternFormatterTest {
   public void testFormatting_withCustomTimestamp() {
     ImmutableMap<String, String> opts =
         ImmutableMap.of("pattern", "%{timestamp} %{message}", "timestamp.pattern", "HH:mm:ss");
-    PatternFormatter fmt = new PatternFormatter(Options.of(opts::get));
+    DefaultPatternFormatter fmt = new DefaultPatternFormatter(Options.of(opts::get));
 
     FakeLogData log = FakeLogData.of("<message>");
     assertThat(fmt.format(log, toMetadata(log))).isEqualTo("01:00:00 <message>");
@@ -146,7 +146,7 @@ public class PatternFormatterTest {
     ImmutableMap<String, String> opts = ImmutableMap.of("pattern", "%{zoot/</>}");
     IllegalArgumentException e =
         assertThrows(
-            IllegalArgumentException.class, () -> new PatternFormatter(Options.of(opts::get)));
+            IllegalArgumentException.class, () -> new DefaultPatternFormatter(Options.of(opts::get)));
     assertThat(e).hasMessageThat().contains("%{zoot}");
     assertThat(e).hasMessageThat().contains("unknown formatting directive");
   }
@@ -157,8 +157,8 @@ public class PatternFormatterTest {
     ImmutableMap<String, String> opts =
         ImmutableMap.of("pattern", "\\\\\\%%{message}\\%\\\\%{metadata/ \\/\\\\{/\\}\\/\\\\}");
 
-    PatternFormatter fmt = new PatternFormatter(Options.of(opts::get));
-    FakeLogData log = FakeLogData.of("<message>").addMetadata(Keys.BAR_KEY, 42);
+    DefaultPatternFormatter fmt = new DefaultPatternFormatter(Options.of(opts::get));
+    FakeLogData log = FakeLogData.of("<message>").addMetadata(Key.BAR_KEY, 42);
     assertThat(fmt.format(log, toMetadata(log))).isEqualTo("\\%<message>%\\ /\\{bar=42}/\\");
   }
 
@@ -168,8 +168,8 @@ public class PatternFormatterTest {
     ImmutableMap<String, String> opts =
         ImmutableMap.of("pattern", "%{message} %{metadata/\\{/\\}}");
 
-    PatternFormatter fmt = new PatternFormatter(Options.of(opts::get));
-    FakeLogData log = FakeLogData.of("<message>").addMetadata(Keys.BAR_KEY, 42);
+    DefaultPatternFormatter fmt = new DefaultPatternFormatter(Options.of(opts::get));
+    FakeLogData log = FakeLogData.of("<message>").addMetadata(Key.BAR_KEY, 42);
     assertThat(fmt.format(log, toMetadata(log))).isEqualTo("<message> {bar=42}");
   }
 
@@ -179,7 +179,7 @@ public class PatternFormatterTest {
     ImmutableMap<String, String> opts = ImmutableMap.of("pattern", "%{message/</>}");
     IllegalArgumentException e =
         assertThrows(
-            IllegalArgumentException.class, () -> new PatternFormatter(Options.of(opts::get)));
+            IllegalArgumentException.class, () -> new DefaultPatternFormatter(Options.of(opts::get)));
     assertThat(e).hasMessageThat().contains("%{message}");
     assertThat(e).hasMessageThat().contains("must not contain prefix or suffix");
   }

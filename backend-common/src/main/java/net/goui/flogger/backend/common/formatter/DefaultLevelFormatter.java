@@ -12,7 +12,7 @@ import net.goui.flogger.backend.common.Options;
  * <h3>Options</h3>
  *
  * <ul>
- *   <li>{@code message_formatter.level.use_localized_name}: Boolean<br>
+ *   <li>{@code flogger.message_formatter.level.use_localized_name}: Boolean<br>
  *       Formats the log level using its localized name according to the current locale.
  * </ul>
  */

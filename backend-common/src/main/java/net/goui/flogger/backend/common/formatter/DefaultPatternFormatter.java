@@ -18,7 +18,7 @@ import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-import net.goui.flogger.backend.common.FloggerPlugin;
+import net.goui.flogger.backend.common.PluginLoader;
 import net.goui.flogger.backend.common.Options;
 
 /**
@@ -115,7 +115,7 @@ import net.goui.flogger.backend.common.Options;
  *       to omit this additional information.
  * </ul>
  */
-public final class PatternFormatter extends LogMessageFormatter {
+public final class DefaultPatternFormatter extends LogMessageFormatter {
   private final MetadataExtractor metadataExtractor;
   private final LogMessageFormatter metadataFormatter;
   private final List<String> parts;
@@ -137,13 +137,13 @@ public final class PatternFormatter extends LogMessageFormatter {
               + "}");
 
   /** Returns a configured Flogger plugin for message formatting based on the given options. */
-  public PatternFormatter(Options options) {
+  public DefaultPatternFormatter(Options options) {
     String formatPattern = options.getString("pattern", "%{message}%{metadata/ [CONTEXT / ]}");
 
     // Options could be: raw, quote-if-string, escape-and-quote (JSON/HTML?)
     // * Single or double quotes.
     // * Escaping inner quotes.
-    BiConsumer<StringBuilder, Object> valueAppender = ValueAppender.defaultAppender();
+    BiConsumer<StringBuilder, Object> valueAppender = JsonValueAppender.jsonAppender();
 
     List<MatchResult> patternParts = parsePatternParts(formatPattern);
     this.metadataExtractor =
@@ -244,7 +244,7 @@ public final class PatternFormatter extends LogMessageFormatter {
   private static BiConsumer<FormatContext, StringBuilder> newFormatter(
       Options options, String optionName, Function<Options, LogMessageFormatter> newFn) {
     LogMessageFormatter formatter =
-        FloggerPlugin.instantiate(
+        PluginLoader.instantiate(
             LogMessageFormatter.class, options.getOptions(optionName), Map.of("default", newFn));
     return (c, b) -> formatter.append(c.getLogData(), c.getMetadata(), b);
   }

@@ -1,6 +1,6 @@
 package net.goui.flogger.backend.common;
 
-import static net.goui.flogger.backend.common.FloggerPlugin.DEFAULT_PLUGIN_NAME;
+import static net.goui.flogger.backend.common.PluginLoader.DEFAULT_PLUGIN_NAME;
 
 import java.util.Map;
 
@@ -18,7 +18,7 @@ public interface NamingStrategy {
    * </ul>
    */
   static NamingStrategy from(Options options) {
-    return FloggerPlugin.instantiate(
+    return PluginLoader.instantiate(
         NamingStrategy.class, options, Map.of(DEFAULT_PLUGIN_NAME, DefaultNamingStrategy::new));
   }
 

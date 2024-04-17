@@ -8,7 +8,7 @@ import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class Log4jBackendFactoryTest {
-  public static final class Keys {
+  public static final class Key {
     public static final MetadataKey<String> FOO = MetadataKey.single("foo_key", String.class);
     public static final MetadataKey<String> BAR = MetadataKey.repeated("bar_key", String.class);
   }
@@ -17,6 +17,6 @@ public class Log4jBackendFactoryTest {
 
   @Test
   public void test() {
-    logger.atInfo().with(Keys.FOO, "Greetings").with(Keys.BAR, "World").with(Keys.BAR, "Tour").log("Hello");
+    logger.atInfo().with(Key.FOO, "Greetings").with(Key.BAR, "World").with(Key.BAR, "Tour").log("Hello");
   }
 }

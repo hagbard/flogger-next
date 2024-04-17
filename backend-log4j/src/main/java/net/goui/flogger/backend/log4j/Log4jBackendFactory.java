@@ -23,7 +23,7 @@ public class Log4jBackendFactory extends BackendFactory {
 
   // Only called by SystemLogRecord.
   static LogMessageFormatter getFormatter() {
-    return LazyFactory.INSTANCE.getBackendFormatter();
+    return LazyFactory.INSTANCE.getMessageFormatter();
   }
 
   static final class LazyFactory extends AbstractBackendFactory<Log4jBackend> {
