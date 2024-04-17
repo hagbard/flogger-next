@@ -7,7 +7,6 @@ import static net.goui.flogger.testing.LevelClass.WARNING;
 import static net.goui.flogger.testing.truth.LogSubject.assertThat;
 
 import com.google.common.flogger.MetadataKey;
-import com.google.common.flogger.backend.Metadata;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
@@ -16,7 +15,6 @@ import net.goui.flogger.FluentLogger;
 import net.goui.flogger.testing.LevelClass;
 import net.goui.flogger.testing.LogEntry;
 import net.goui.flogger.testing.junit4.FloggerTestRule;
-import net.goui.flogger.testing.truth.LogSubject;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -146,7 +144,7 @@ public class SystemBackendFactoryTest {
     // Set by the logging properties loaded by this test (only check this after doing logging).
     assertThat(systemJdkLogger.getLevel()).isEqualTo(Level.WARNING);
     assertThat(floggerJdkLogger.getLevel()).isNull();
-    assertThat(unknownJdkLogger.getLevel()).isNull();;
+    assertThat(unknownJdkLogger.getLevel()).isNull();
 
     // Nothing enabled yet, but reconfigure each JDK logger in turn.
     assertThat(SystemRootLogger.isEnabled(Level.FINE)).isFalse();

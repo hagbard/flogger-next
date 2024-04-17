@@ -1,23 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Extra logging related to initialization of Log4j.
  Set to debug or trace if log4j initialization is failing. -->
-<Configuration status="debug">
+<Configuration status="warn">
     <Properties>
-
         <Property name="flogger.properties">Filename goes here</Property>
-        <Property name="flogger.backend_naming.retain_at_least">4</Property>
+        <!-- -->
+        <Property name="flogger.use_backend_cache">true</Property>
+        <Property name="flogger.backend_naming.use_system_roots">true</Property>
+        <Property name="flogger.backend_naming.retain_at_most">4</Property>
+        <!-- -->
         <Property name="flogger.message_formatter.impl">pattern</Property>
-        <Property name="flogger.message_formatter.pattern">%{timestamp} %{level}[%{location}] %{key.foo/(foo:/) }%{message}%{metadata/ [/]}</Property>
-        <Property name="flogger.message_formatter.metadata.key.foo">net.goui.flogger.backend.log4j.Log4jBackendFactoryTest$Key#FOO</Property>
+        <Property name="flogger.message_formatter.pattern">%{timestamp} %{level}[%{location}] %{key.xxx/(Foo:/) }%{message}%{metadata/ [/]}</Property>
+        <Property name="flogger.message_formatter.metadata.key.xxx">net.goui.flogger.backend.log4j.Log4jBackendFactoryTest$Keys#FOO</Property>
         <Property name="flogger.message_formatter.metadata.ignore">@myapp.ignored_keys</Property>
-        <Property name="myapp.ignored_keys.size">2</Property>
+        <!-- -->
+        <Property name="myapp.ignored_keys.size">3</Property>
         <Property name="myapp.ignored_keys.0">com.google.common.flogger.LogContext$Key#LOG_EVERY_N</Property>
         <Property name="myapp.ignored_keys.1">com.google.common.flogger.LogContext$Key#LOG_AT_MOST_EVERY</Property>
+        <Property name="myapp.ignored_keys.2">net.goui.flogger.backend.log4j.Log4jBackendFactoryTest$Keys#BAR</Property>
     </Properties>
     <Appenders>
         <!-- Console appender configuration -->
         <Console name="console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />
+            <PatternLayout pattern="{{ %m }} '%X{bar_key}'%n" />
         </Console>
     </Appenders>
     <Loggers>

@@ -46,24 +46,30 @@ final class Log4jEventUtil {
 
   private static void handleMetadata(
       MetadataKey<?> key, Object value, MetadataKey.KeyValueHandler kvh) {
-    kvh.handle(key.getLabel(), key == Key.TAGS ? toValueQueue(Key.TAGS.cast(value)) : value);
+    value = key == Key.TAGS ? toTagsList(Key.TAGS.cast(value)) : value;
+    if (value != null) {
+      kvh.handle(key.getLabel(), value);
+    }
   }
 
-  private static ValueQueue toValueQueue(Tags tags) {
-    ValueQueue queue = new ValueQueue();
-    // Flatten tags to treat them as keys or key/value pairs, e.g. ["baz=bar1", "baz=bar2", "foo"]
-    tags.asMap().forEach((label, tagValues) -> addTagValues(queue, label, tagValues));
+  private static Object toTagsList(Tags tags) {
+    Object queue = null;
+    // Flatten tags as key or key/value pair strings, e.g. ["baz=bar1", "baz=bar2", "foo"].
+    for (var e : tags.asMap().entrySet()) {
+      queue = addTagStrings(queue, e.getKey(), e.getValue());
+    }
     return queue;
   }
 
-  private static void addTagValues(ValueQueue queue, String tagLabel, Set<Object> tagValues) {
+  private static Object addTagStrings(Object queue, String tagLabel, Set<Object> tagValues) {
     if (tagValues.isEmpty()) {
-      ValueQueue.concat(queue, tagLabel);
-    } else {
-      for (Object tagValue : tagValues) {
-        ValueQueue.concat(queue, tagLabel + "=" + tagValue);
-      }
+      return ValueQueue.concat(queue, tagLabel);
     }
+      for (Object tagValue : tagValues) {
+      // Tags have a limited set of value types which can all be safely turned into a string.
+      queue = ValueQueue.concat(queue, tagLabel + "=" + tagValue);
+    }
+    return queue;
   }
 
   /**

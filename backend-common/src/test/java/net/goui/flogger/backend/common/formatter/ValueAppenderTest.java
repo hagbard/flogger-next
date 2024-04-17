@@ -27,10 +27,12 @@ public class ValueAppenderTest {
         new Object() {
           @Override
           public String toString() {
-            throw new RuntimeException("Spanish Inquisition");
+            throw new IllegalStateException("Spanish Inquisition");
           }
         };
-    assertThat(defaultAppend(unexpected)).isEqualTo("\"Error: <Spanish Inquisition>\"");
+    String actual = defaultAppend(unexpected);
+    assertThat(actual).contains("java.lang.IllegalStateException");
+    assertThat(actual).contains("Spanish Inquisition");
   }
 
   static String defaultAppend(Object value) {

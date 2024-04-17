@@ -8,6 +8,7 @@ import com.google.common.flogger.LogSite;
 import com.google.common.flogger.backend.LogData;
 import com.google.common.flogger.backend.MetadataProcessor;
 import java.util.Map;
+import java.util.Optional;
 import net.goui.flogger.backend.common.FloggerLogEntry;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.ThreadContext;
@@ -37,7 +38,7 @@ public class Log4jEvent extends AbstractLogEvent
   // Can be derived idempotently from LogData and cached.
   private volatile Instant timestamp = null;
   private volatile StackTraceElement source = null;
-  private volatile ThrowableProxy thrownProxy = null;
+  private volatile Optional<ThrowableProxy> thrownProxy = null;
 
   // Only used for asynchronous message handling.
   private volatile String cachedFormattedMessage = null;
@@ -154,9 +155,10 @@ public class Log4jEvent extends AbstractLogEvent
   @Override
   public ThrowableProxy getThrownProxy() {
     if (thrownProxy == null) {
-      thrownProxy = new ThrowableProxy(getThrown());
+      Throwable thrown = getThrown();
+      thrownProxy = thrown != null ? Optional.of(new ThrowableProxy(thrown)) : Optional.empty();
     }
-    return thrownProxy;
+    return thrownProxy.orElse(null);
   }
 
   @Override

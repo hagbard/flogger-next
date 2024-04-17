@@ -21,7 +21,100 @@ import java.util.stream.Stream;
 import net.goui.flogger.backend.common.FloggerPlugin;
 import net.goui.flogger.backend.common.Options;
 
-// %{timestamp} (%{level} - %{location}): %{key.foo}%{key.bar/-} %{message}%{metadata/ [/]}
+/**
+ * Flogger plugin for customizable log message formatting.
+ *
+ * <h3>Options</h3>
+ *
+ * <ul>
+ *   <li>{@code flogger.message_formatter.pattern}: String<br>
+ *       A rich format template for log message formatting (see below for details).
+ *   <li>{@code flogger.message_formatter.metadata.key.<label>}: String<br>
+ *       Maps a label to a public static {@link com.google.common.flogger.MetadataKey MetadataKey}
+ *       field to permit custom formatting in the log message (see the {@code %{key.<label>}}
+ *       directive).
+ *   <li>{@code flogger.message_formatter.metadata.ignore}: String[]<br>
+ *       A list of {@link com.google.common.flogger.MetadataKey MetadataKey} fields to be ignored
+ *       when formatting the {@code %{metadata}} directive.
+ * </ul>
+ *
+ * <h3>Formatter Directives</h3>
+ *
+ * <p>Custom message formatting is controlled primarily by the {@code pattern} option, which defines
+ * a template string containing formatter directives (e.g. {@code %{message}} or {@code
+ * %{metadata}}).
+ *
+ * <p>Directives can be either "built in" or provided via plugins, which allows further
+ * customization of message formatting.
+ *
+ * <ul>
+ *   <li>{@code %{message}}: Built-in<br>
+ *       Emits the basic formatted log message (i.e. what was passed to the {@code log()} method).
+ *   <li>{@code %{metadata}}: Built-in<br>
+ *       Emits log metadata (e.g. scope or log site metadata such as task IDs or rate limiting
+ *       information). Note that specific metadata can be formatted separately using {@code
+ *       %{key.<label>}} or ignored via the {@code flogger.message_formatter.metadata.ignore} option
+ *       list.
+ *   <li>{@code %{key.<label>}}: Built-in<br>
+ *       Emits metadata value(s) associated with a known {@link
+ *       com.google.common.flogger.MetadataKey MetadataKey}. The given label must match an entry in
+ *       the {@code message_formatter.metadata.key.<label>} options.
+ *   <li>{@code %{level}}: Plugin {@link DefaultLevelFormatter}<br>
+ *       Override default implementation via {@code flogger.message_formatter.level.impl}.
+ *   <li>{@code %{location}}: Plugin {@link DefaultLocationFormatter}<br>
+ *       Override default implementation via {@code flogger.message_formatter.location.impl}.
+ *   <li>{@code %{timestamp}}: Plugin {@link DefaultTimestampFormatter}<br>
+ *       Override default implementation via {@code flogger.message_formatter.timestamp.impl}.
+ * </ul>
+ *
+ * <h3>Prefix/Suffix Formatting</h3>
+ *
+ * <p>Formatter directives with optional values can also accept prefix/suffix strings which are only
+ * emitted if a value exists. This improves the formatting of optional values, such as metadata.
+ *
+ * <p>The prefix/suffix format syntax is {@code %{label/prefix/suffix}} where the suffix can be
+ * omitted if empty. For example:
+ *
+ * <ul>
+ *   <li>{@code %{metadata/[/]}}: Formats metadata values surrounded by '[',']' if metadata exists,
+ *       but emits nothing otherwise.
+ *   <li>{@code %{key.foo/Foo=}}: Formats a specific metadata value as {@code Foo=<value>} if it
+ *       exists, but emits nothing otherwise.
+ * </ul>
+ *
+ * <p>Since prefix/suffix strings need to be arbitrary, they employ simple backslash escaping to
+ * allow characters such as '/' or '}' to be included. Simply prefix a character with {@code '\'} to
+ * make it a literal.
+ *
+ * <p>Note that this feature is very useful for controlling spaces between optional message parts
+ * and very commonly, either a prefix will start with a space, or a suffix will end with one.
+ *
+ * <p>Currently only the {@code metadata} and {@code key.<label>} directives have optional values.
+ * Directives such as {@code %{timestamp}} which always emit a value do not accept prefix/suffix
+ * strings, since they would always be emitted. Any formatting around these directives should just
+ * be given normally in the pattern template.
+ *
+ * <h3>Example Format Pattern Strings</h3>
+ *
+ * <ul>
+ *   <li>{@code "%{message}%{metadata/ [CONTEXT / ]}"}<br>
+ *       Mimics the original Flogger format (note the leading space in the prefix string to avoid
+ *       always leaving a space at the end of logs). This pattern string is the default.
+ *   <li>{@code "%{message}%{metadata/ [/]}"}<br>
+ *       Similar to the original Flogger format, but formats metadata more concisely.
+ *   <li>{@code "%{key.task_id/Task=/: }%{message}%{metadata/ [/]}"}<br>
+ *       As above, but moving a specific piece of metadata to be formatted before the message. Any
+ *       metadata values formatted explicitly this way will not also be emitted via the {@code
+ *       %{metadata}} directive.
+ *   <li>{@code "%{message}"}<br>
+ *       Formats just the log message, ignoring all metadata. This is only recommended if you are
+ *       using something like Log4J, where metadata can be passed to the underlying logging system.
+ *   <li>{@code "%{timestamp} [%{location}]%{level} %{message}%{metadata/ [/]}"}<br>
+ *       Formats the log message and metadata with additional timestamp, location and level
+ *       information. This is only recommended if you have configured the underlying logging system
+ *       to omit this additional information.
+ * </ul>
+ */
 public final class PatternFormatter extends LogMessageFormatter {
   private final MetadataExtractor metadataExtractor;
   private final LogMessageFormatter metadataFormatter;
@@ -29,15 +122,21 @@ public final class PatternFormatter extends LogMessageFormatter {
   private final List<BiConsumer<FormatContext, StringBuilder>> formatters;
 
   private static final Pattern ESCAPED_CHAR = Pattern.compile("\\\\(.)");
+
+  // Note: Option names cannot contain:
+  // '@', '$', ',', '/', '|', '\', '{', '}', '(', ')', '[', ']'
+  // and non-key directives are a fixed set, so the <label> string does not need unescaping.
+  // This gives the ability to add options directly in the label part (e.g. for time formats).
   private static final Pattern PATTERN_REGEX =
       Pattern.compile(
           "((?:[^%\\\\]|\\\\.)*)" // literal part
               + "%\\{"
-              + "([^/}\\\\]+)" // <label> (no '\' and no escaping)
+              + "([^/}\\\\]+)" // <label> (no unescaping needed)
               + "(?:/((?:[^/\\\\}]|\\\\.)*)" // /<prefix>
               + "(?:/((?:[^/\\\\}]|\\\\.)*))?)?" // /<suffix>
               + "}");
 
+  /** Returns a configured Flogger plugin for message formatting based on the given options. */
   public PatternFormatter(Options options) {
     String formatPattern = options.getString("pattern", "%{message}%{metadata/ [CONTEXT / ]}");
 
@@ -120,14 +219,14 @@ public final class PatternFormatter extends LogMessageFormatter {
               "unknown formatting directive %{" + label + "} in message format string");
         }
         isOptionalDirective = true;
-        formatter = (c, b) -> valueAppender.accept(b, c.getValue(label.substring(4)));
+        formatter = (c, b) -> valueAppender.accept(b, c.getCustomMetadataValue(label.substring(4)));
         break;
     }
     // Only some directives have a prefix/suffix, but where it's not present these are empty.
     String prefix = unescape(m.group(3));
     String suffix = unescape(m.group(4));
     if (isOptionalDirective) {
-      return FormatContext.wrap(prefix, suffix, formatter);
+      return allowPrefixAndSuffix(prefix, suffix, formatter);
     }
     if (!prefix.isEmpty() || !suffix.isEmpty()) {
       throw new IllegalArgumentException(
@@ -144,9 +243,24 @@ public final class PatternFormatter extends LogMessageFormatter {
 
   private static BiConsumer<FormatContext, StringBuilder> newFormatter(
       Options options, String optionName, Function<Options, LogMessageFormatter> newFn) {
-    return FormatContext.wrap(
+    LogMessageFormatter formatter =
         FloggerPlugin.instantiate(
-            LogMessageFormatter.class, options.getOptions(optionName), Map.of("default", newFn)));
+            LogMessageFormatter.class, options.getOptions(optionName), Map.of("default", newFn));
+    return (c, b) -> formatter.append(c.getLogData(), c.getMetadata(), b);
+  }
+
+  private static BiConsumer<FormatContext, StringBuilder> allowPrefixAndSuffix(
+      String prefix, String suffix, BiConsumer<FormatContext, StringBuilder> delegate) {
+    return (c, b) -> {
+      int start = b.length();
+      b.append(prefix);
+      delegate.accept(c, b);
+      if (b.length() == start + prefix.length()) {
+        b.setLength(start);
+      } else {
+        b.append(suffix);
+      }
+    };
   }
 
   @Override
@@ -156,44 +270,35 @@ public final class PatternFormatter extends LogMessageFormatter {
 
   @Override
   public StringBuilder append(LogData logData, MetadataProcessor metadata, StringBuilder buffer) {
-    Map<String, Object> keyMap = metadataExtractor.extractKeys(metadata);
-    FormatContext context = new FormatContext(logData, metadata, keyMap);
+    FormatContext context = new FormatContext(logData, metadata);
     int partCount = formatters.size();
     for (int n = 0; n < partCount; n++) {
       buffer.append(parts.get(n));
       formatters.get(n).accept(context, buffer);
     }
-    buffer.append(parts.get(partCount));
-    return buffer;
+    return buffer.append(parts.get(partCount));
   }
 
-  private static class FormatContext {
-    static BiConsumer<FormatContext, StringBuilder> wrap(LogMessageFormatter formatter) {
-      return (c, b) -> formatter.append(c.getLogData(), c.getMetadata(), b);
-    }
-
-    static BiConsumer<FormatContext, StringBuilder> wrap(
-        String prefix, String suffix, BiConsumer<FormatContext, StringBuilder> delegate) {
-      return (c, b) -> {
-        int start = b.length();
-        b.append(prefix);
-        delegate.accept(c, b);
-        if (b.length() == start + prefix.length()) {
-          b.setLength(start);
-        } else {
-          b.append(suffix);
-        }
-      };
-    }
-
+  /**
+   * Context passed to formatting callbacks providing access to all runtime log data.
+   *
+   * <p>This approach allows long-lived, repeated use format directive callbacks to be created in
+   * the pattern formatter and minimizes work during actual log message formatting.
+   */
+  private class FormatContext {
     private final LogData logData;
+    // All user supplied metadata (context and log-site), including custom formatted values.
     private final MetadataProcessor metadata;
-    private final Map<String, Object> keyMap;
+    // Extracted values for custom formatted metadata. Note that the keys of the returned map DO NOT
+    // necessarily match the default labels of associated MetadataKeys (since a custom MetadataKey
+    // can emit multiple values with distinct labels). This means you cannot lookup values directly
+    // from the metadata in getCustomMetadataValue().
+    private final Map<String, Object> customMetadataMap;
 
-    public FormatContext(LogData logData, MetadataProcessor metadata, Map<String, Object> keyMap) {
+    FormatContext(LogData logData, MetadataProcessor metadata) {
       this.logData = requireNonNull(logData);
       this.metadata = requireNonNull(metadata);
-      this.keyMap = requireNonNull(keyMap);
+      this.customMetadataMap = metadataExtractor.extractCustomMetadata(metadata);
     }
 
     LogData getLogData() {
@@ -204,8 +309,9 @@ public final class PatternFormatter extends LogMessageFormatter {
       return metadata;
     }
 
-    Object getValue(String key) {
-      return keyMap.getOrDefault(key, null);
+    /** Returns the value of custom formatted metadata via the {@code %{key.<label>}} directive. */
+    Object getCustomMetadataValue(String label) {
+      return customMetadataMap.getOrDefault(label, null);
     }
   }
 }

@@ -1,5 +1,6 @@
 package net.goui.flogger.backend.common.formatter;
 
+import com.google.common.flogger.backend.MessageUtils;
 import java.util.function.BiConsumer;
 
 final class ValueAppender {
@@ -13,16 +14,9 @@ final class ValueAppender {
       if (value instanceof Number || value instanceof Boolean) {
         out.append(value);
       } else {
-        appendJsonEscape(out.append('"'), toSafeString(value)).append('"');
+        // safeToString() formats things like arrays better than String.valueOf().
+        appendJsonEscape(out.append('"'), MessageUtils.safeToString(value)).append('"');
       }
-    }
-  }
-
-  private static String toSafeString(Object value) {
-    try {
-      return String.valueOf(value);
-    } catch (RuntimeException e) {
-      return "Error: <" + e.getLocalizedMessage() + ">";
     }
   }
 

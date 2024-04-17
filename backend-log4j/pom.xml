@@ -27,12 +27,6 @@
             <artifactId>flogger</artifactId>
             <version>0.8</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.google.flogger/flogger-system-backend -->
-        <dependency>
-            <groupId>com.google.flogger</groupId>
-            <artifactId>flogger-system-backend</artifactId>
-            <version>0.8</version>
-        </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>

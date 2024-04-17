@@ -46,12 +46,6 @@
             <version>0.0.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
-<!--        &lt;!&ndash; https://mvnrepository.com/artifact/com.google.flogger/flogger &ndash;&gt;-->
-<!--        <dependency>-->
-<!--            <groupId>com.google.flogger</groupId>-->
-<!--            <artifactId>flogger</artifactId>-->
-<!--            <version>0.8</version>-->
-<!--        </dependency>-->
         <!-- https://mvnrepository.com/artifact/com.google.flogger/flogger-system-backend -->
         <dependency>
             <groupId>com.google.flogger</groupId>
@@ -82,7 +76,7 @@
         <dependency>
             <groupId>net.goui.flogger-testing</groupId>
             <artifactId>junit4</artifactId>
-            <version>1.0.10</version>
+            <version>1.0.11</version>
             <scope>test</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.flogger/flogger-grpc-context -->

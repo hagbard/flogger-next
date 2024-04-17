@@ -6,6 +6,16 @@ import com.google.common.flogger.backend.MetadataProcessor;
 import java.util.logging.Level;
 import net.goui.flogger.backend.common.Options;
 
+/**
+ * Flogger message formatter plugin for the {@code %{level}} directive to format the log level.
+ *
+ * <h3>Options</h3>
+ *
+ * <ul>
+ *   <li>{@code message_formatter.level.use_localized_name}: Boolean<br>
+ *       Formats the log level using its localized name according to the current locale.
+ * </ul>
+ */
 final class DefaultLevelFormatter extends LogMessageFormatter {
   private final boolean useLocalizedName;
 
