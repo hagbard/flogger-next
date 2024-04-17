@@ -7,11 +7,21 @@ import com.google.common.flogger.backend.Metadata;
 import com.google.common.flogger.backend.Platform;
 import com.google.common.flogger.backend.system.AbstractBackend;
 import com.google.common.flogger.backend.system.BackendFactory;
-import java.util.List;
 import java.util.logging.LogManager;
 import net.goui.flogger.backend.common.AbstractBackendFactory;
 import net.goui.flogger.backend.common.Options;
 
+/**
+ * Service API providing Flogger Next integration with Log4j2.
+ *
+ * <p>This class is configured as a service API for {@link BackendFactory} via {@code
+ * META-INF/services} and will be loaded automatically if it appears in the class path of an
+ * application.
+ *
+ * <p>To force Flogger to use this class (e.g. if multiple service APIs for {@link BackendFactory}
+ * exist), set the system property {@code flogger.backend_factory} to the fully qualified name of
+ * this class.
+ */
 public class SystemBackendFactory extends BackendFactory {
   // Explicit since this is a service API and called during Platform initialization.
   public SystemBackendFactory() {
@@ -32,31 +42,22 @@ public class SystemBackendFactory extends BackendFactory {
     static final LazyFactory INSTANCE = new LazyFactory();
 
     LazyFactory() {
-      super(getOptions(), Backend::new);
+      super(loadOptions(), FloggerConfig.getSystemRoots());
     }
 
-    private static Options getOptions() {
+    @Override
+    protected Backend newBackend(
+        String backendName, LogMessageFormatter formatter, Options options) {
+      return new Backend(backendName);
+    }
+    
+    private static Options loadOptions() {
       // Must not call any code which might risk triggering reentrant Flogger logging.
       return Options.of(LogManager.getLogManager()::getProperty).getOptions("flogger");
     }
-
-    /**
-     * A heuristic to find the list of loggers configured in the log manager. Without a general way
-     * to read the set of properties, we have to heuristically determine the properties based on the
-     * known set of loggers and then confirm they were in the property file (rather than being
-     * configured programmatically).
-     *
-     * <p>This is called back by the parent constructor and should be called only once, early in the
-     * application's life.
-     */
-    @Override
-    protected List<String> getSystemRoots() {
-      // Must not call any code which might risk triggering reentrant Flogger logging.
-      return FloggerConfig.getSystemRoots();
-    }
   }
 
-  public static class Backend extends AbstractBackend {
+  private static final class Backend extends AbstractBackend {
     Backend(String loggerName) {
       super(loggerName);
     }

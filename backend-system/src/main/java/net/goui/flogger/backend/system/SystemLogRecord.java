@@ -7,6 +7,9 @@ import com.google.common.flogger.backend.Metadata;
 import com.google.common.flogger.backend.system.AbstractLogRecord;
 import net.goui.flogger.backend.common.FloggerLogEntry;
 
+/**
+ * TODO: Maybe stop extending AbstractLogRecord to allow serialization?
+ */
 public final class SystemLogRecord extends AbstractLogRecord implements FloggerLogEntry {
   /** Creates a {@link SystemLogRecord} for a normal log statement from the given data. */
   static SystemLogRecord create(LogData data, Metadata scope) {

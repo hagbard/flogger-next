@@ -15,7 +15,14 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.LogManager;
 
 /**
+ * A configuration class which intercepts the loading of {@code logging.properties} file (wherever
+ * it is located) and allows Flogger to inspect it to determine the system logging roots.
  *
+ * <p>Install this class via the {@code java.util.logging.config.class} system property:
+ *
+ * <pre>{@code
+ * -Djava.util.logging.config.class=net.goui.flogger.backend.system.FloggerConfig
+ * }</pre>
  */
 public final class FloggerConfig {
   private static final AtomicReference<List<String>> configuredRoots = new AtomicReference<>();

@@ -46,6 +46,20 @@
             <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/net.goui.flogger-testing/junit4 -->
+        <dependency>
+            <groupId>net.goui.flogger-testing</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.0.12</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/net.goui.flogger-testing/junit4 -->
+        <dependency>
+            <groupId>net.goui.flogger-testing</groupId>
+            <artifactId>junit4</artifactId>
+            <version>1.0.12</version>
+            <scope>test</scope>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.truth/truth -->
         <dependency>
             <groupId>com.google.truth</groupId>

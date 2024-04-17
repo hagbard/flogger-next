@@ -1,29 +1,28 @@
 package net.goui.flogger.backend.log4j;
 
-import static java.util.concurrent.TimeUnit.NANOSECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.logging.Level.WARNING;
 
 import com.google.common.flogger.LogContext.Key;
+import com.google.common.flogger.LogSite;
 import com.google.common.flogger.MetadataKey;
 import com.google.common.flogger.backend.MetadataHandler;
 import com.google.common.flogger.backend.MetadataProcessor;
 import com.google.common.flogger.context.Tags;
 import java.util.Set;
 import org.apache.logging.log4j.core.impl.ContextDataFactory;
-import org.apache.logging.log4j.core.time.Instant;
-import org.apache.logging.log4j.core.time.MutableInstant;
 import org.apache.logging.log4j.util.StringMap;
 
+/**
+ * TODO: Docs
+ */
 final class Log4jEventUtil {
-  @SuppressWarnings({"NanosTo_Seconds", "SecondsTo_Nanos"})
-  static Instant getLog4jInstantFromNanos(long timestampNanos) {
-    MutableInstant instant = new MutableInstant();
-    // Don't use Duration here as (a) it allocates and (b) we can't allow error on overflow.
-    long epochSeconds = NANOSECONDS.toSeconds(timestampNanos);
-    int remainingNanos = (int) (timestampNanos - SECONDS.toNanos(epochSeconds));
-    instant.initFromEpochSecond(epochSeconds, remainingNanos);
-    return instant;
+  /** Returns a {@link StackTraceElement} with the log site information in. */
+  static StackTraceElement getLog4jSource(LogSite logSite) {
+    return new StackTraceElement(
+        logSite.getClassName(),
+        logSite.getMethodName(),
+        logSite.getFileName(),
+        logSite.getLineNumber());
   }
 
   /** Converts java.util.logging.Level to org.apache.log4j.Level. */
@@ -46,30 +45,27 @@ final class Log4jEventUtil {
 
   private static void handleMetadata(
       MetadataKey<?> key, Object value, MetadataKey.KeyValueHandler kvh) {
-    value = key == Key.TAGS ? toTagsList(Key.TAGS.cast(value)) : value;
-    if (value != null) {
+    if (key == Key.TAGS) {
+      // Flatten tag values as entries directly in the context data.
+      addTags(Key.TAGS.cast(value), kvh);
+    } else if (value != null) {
       kvh.handle(key.getLabel(), value);
     }
   }
 
-  private static Object toTagsList(Tags tags) {
-    Object queue = null;
-    // Flatten tags as key or key/value pair strings, e.g. ["baz=bar1", "baz=bar2", "foo"].
+  private static void addTags(Tags tags, MetadataKey.KeyValueHandler kvh) {
     for (var e : tags.asMap().entrySet()) {
-      queue = addTagStrings(queue, e.getKey(), e.getValue());
+      String k = e.getKey();
+      Set<Object> values = e.getValue();
+      if (!values.isEmpty()) {
+        for (Object v : values) {
+          kvh.handle(k, v);
+        }
+      } else {
+        // Tags without values are not allowed in ContextData, so fake it with an empty string.
+        kvh.handle(k, "");
+      }
     }
-    return queue;
-  }
-
-  private static Object addTagStrings(Object queue, String tagLabel, Set<Object> tagValues) {
-    if (tagValues.isEmpty()) {
-      return ValueQueue.concat(queue, tagLabel);
-    }
-      for (Object tagValue : tagValues) {
-      // Tags have a limited set of value types which can all be safely turned into a string.
-      queue = ValueQueue.concat(queue, tagLabel + "=" + tagValue);
-    }
-    return queue;
   }
 
   /**

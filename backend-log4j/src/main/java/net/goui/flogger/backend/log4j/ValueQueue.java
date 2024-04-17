@@ -3,13 +3,12 @@ package net.goui.flogger.backend.log4j;
 import static com.google.common.flogger.backend.MessageUtils.safeToString;
 import static java.util.Objects.requireNonNull;
 
-import java.util.Objects;
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 
 /**
  * A lightweight API for efficiently creating a list of values to use in an MDC.
  *
- * <p>This class is NOT thread safe during queue creation and ownership of the queue is assumed to
+ * <p>This class is NOT thread safe during queue creation, and ownership of the queue is assumed to
  * be taken by the Log4J log entry class as part of the MDC creation.
  */
 final class ValueQueue {
@@ -31,7 +30,7 @@ final class ValueQueue {
       return newValueOrQueue;
     }
     ValueQueue existingQueue = asQueue(existingValueOrQueue);
-    existingQueue.tail = asQueue(newValueOrQueue);
+    existingQueue.getTail().tail = asQueue(newValueOrQueue);
     return existingQueue;
   }
 
@@ -47,39 +46,23 @@ final class ValueQueue {
     return value instanceof ValueQueue ? (ValueQueue) value : new ValueQueue(value);
   }
 
+  private ValueQueue getTail() {
+    ValueQueue cur = this;
+    while (cur.tail != null) {
+      cur = cur.tail;
+    }
+    return cur;
+  }
+
   @Override
   public String toString() {
-    if (tail == null) {
-      return safeToString(head);
-    }
     StringBuilder out = new StringBuilder("[");
     out.append(safeToString(head));
     ValueQueue nxt = tail;
-    do {
+    while (nxt != null) {
       out.append(", ").append(safeToString(nxt.head));
       nxt = nxt.tail;
-    } while (nxt != null);
-    return out.append("]").toString();
-  }
-
-  @Override
-  public boolean equals(Object other) {
-    if (other instanceof ValueQueue) {
-      ValueQueue lhs = this;
-      ValueQueue rhs = (ValueQueue) other;
-      while (Objects.equals(lhs.head, rhs.head)) {
-        lhs = lhs.tail;
-        rhs = rhs.tail;
-        if (lhs == null || rhs == null) {
-          return lhs == rhs;
-        }
-      }
     }
-    return false;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(head, tail);
+    return out.append("]").toString();
   }
 }

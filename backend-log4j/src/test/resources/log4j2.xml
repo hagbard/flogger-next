@@ -9,7 +9,6 @@
         <Property name="flogger.backend_naming.use_system_roots">true</Property>
         <Property name="flogger.backend_naming.retain_at_most">4</Property>
         <!-- -->
-        <Property name="flogger.message_formatter.impl">pattern</Property>
         <Property name="flogger.message_formatter.pattern">%{timestamp} %{level}[%{location}] %{key.xxx/(Foo:/) }%{message}%{metadata/ [/]}</Property>
         <Property name="flogger.message_formatter.metadata.key.xxx">net.goui.flogger.backend.log4j.Log4jBackendFactoryTest$Key#FOO</Property>
         <Property name="flogger.message_formatter.metadata.ignore">@myapp.ignored_keys</Property>
@@ -22,13 +21,16 @@
     <Appenders>
         <!-- Console appender configuration -->
         <Console name="console" target="SYSTEM_OUT">
-            <PatternLayout pattern="{{ %m }} '%X{bar_key}'%n" />
+            <!-- Tests in this module rely on just seeing the Flogger message logged. -->
+            <PatternLayout pattern="%m%n"/>
         </Console>
     </Appenders>
     <Loggers>
         <!-- Root logger referring to console appender -->
-        <Root level="info" additivity="false">
+        <Root level="error" additivity="false">
             <AppenderRef ref="console" />
         </Root>
+        <Logger name="net.goui.flogger.backend" level="info" additivity="false"/>
+        <Logger name="net.goui.flogger.backend.warning" level="warn" additivity="false"/>
     </Loggers>
 </Configuration>

@@ -14,10 +14,30 @@ import java.util.stream.Stream;
  * <h3>Options</h3>
  *
  * <ul>
- *   <li>{@code flogger.backend_naming.trim_at_least}: Integer<br>
- *   <li>{@code flogger.backend_naming.retain_at_most}: Integer<br>
  *   <li>{@code flogger.backend_naming.roots}: String[]<br>
+ *       A list of explicitly specified logger names which serve as the roots for logging classes
+ *       under them. These entries are either class names, package names or package names with
+ *       wildcard suffixes (i.e. {@code ".*"}). A trailing sequence of wildcard suffixes indicates a
+ *       maximum depth to which logging class names will be truncated to, and is useful to reduce
+ *       the number of packages you need to explicitly provide and maintain.
  *   <li>{@code flogger.backend_naming.use_system_roots}: Boolean<br>
+ *       Enables inheritance of any system defined logger roots from the underlying logging system.
+ *       This mechanism can be useful because it avoids repeating the same information in several
+ *       places.<br>
+ *       However, because visibility of the system "root" loggers is dependent on the underlying
+ *       logging system, additional steps may need to be taken to enable it.<br>
+ *       For example, if using the JDK backend, you need to set the {@code
+ *       java.util.logging.config.class} system property to {@code
+ *       net.goui.flogger.backend.system.FloggerConfig} to read the system roots.
+ *   <li>{@code flogger.backend_naming.trim_at_least}: Integer<br>
+ *       The minimum number of name segments to be removed from the end of a logger class name to
+ *       generate a backend name. This only applies for class names <em>not</em> matched by a
+ *       logging root.<br>
+ *       This is useful for mapping logging class names to some parent package.
+ *   <li>{@code flogger.backend_naming.retain_at_most}: Integer<br>
+ *       The greatest depth allowed for any generated logger backend name for class names
+ *       <em>not</em> matched by a logging root.<br>
+ *       This is useful to limit the number of backends created in deep package hierarchies.
  * </ul>
  */
 public final class DefaultNamingStrategy implements NamingStrategy {

@@ -6,6 +6,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.flogger.MetadataKey;
 import com.google.common.flogger.backend.LogData;
+import com.google.common.flogger.backend.LogMessageFormatter;
 import com.google.common.flogger.backend.LoggerBackend;
 import com.google.common.flogger.backend.MetadataProcessor;
 import com.google.common.flogger.testing.FakeLogData;
@@ -65,7 +66,7 @@ public class AbstractBackendFactoryTest {
             "com.foo",
             "backend_naming.roots.1",
             "com.bar");
-    TestFactory factory = new TestFactory(Options.of(opts::get));
+    TestFactory factory = new TestFactory(Options.of(opts::get), "com.system");
 
     assertThat(factory.create("com.foo.Class").getLoggerName()).isEqualTo("com.foo");
     assertThat(factory.create("com.bar.Class").getLoggerName()).isEqualTo("com.bar");
@@ -158,8 +159,6 @@ public class AbstractBackendFactoryTest {
     // Pattern formatter is tested thoroughly elsewhere, so just test the setup here.
     ImmutableMap<String, String> opts =
         ImmutableMap.of(
-            "message_formatter.impl",
-            "pattern",
             "message_formatter.pattern",
             "%{message}%{metadata/ {/\\}}",
             "message_formatter.metadata.ignore.size",
@@ -179,16 +178,14 @@ public class AbstractBackendFactoryTest {
   }
 
   static class TestFactory extends AbstractBackendFactory<FakeBackend> {
-
-    protected TestFactory(Options options) {
-      super(options, FakeBackend::new);
+    TestFactory(Options options, String... systemRoots) {
+      super(options, List.of(systemRoots));
     }
 
     @Override
-    protected List<String> getSystemRoots() {
-      // Called from super-class init, so cannot just return an instance field here.
-      // In real implementations, this is derived from the underlying logging config.
-      return List.of("com.system");
+    protected FakeBackend newBackend(
+        String backendName, LogMessageFormatter formatter, Options options) {
+      return new FakeBackend(backendName);
     }
   }
 

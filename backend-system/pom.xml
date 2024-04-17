@@ -76,7 +76,7 @@
         <dependency>
             <groupId>net.goui.flogger-testing</groupId>
             <artifactId>junit4</artifactId>
-            <version>1.0.11</version>
+            <version>1.0.12</version>
             <scope>test</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.flogger/flogger-grpc-context -->
