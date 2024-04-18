@@ -7,6 +7,7 @@ import com.google.common.flogger.LazyArg;
 import com.google.common.flogger.LogSite;
 import com.google.common.flogger.backend.LoggerBackend;
 import com.google.common.flogger.backend.Platform;
+import java.util.FormatProcessor;
 import java.util.logging.Level;
 
 /**
@@ -102,7 +103,7 @@ public final class FluentLogger extends AbstractLogger<NextLoggingApi> {
   }
 
   static LazyArg<String> lazilyInterpolate(StringTemplate template) {
-    return () -> new LogTemplate(template).interpolate();
+    return () -> FormatProcessor.FMT.process(new LogTemplate(template));
   }
 
   private static class NoOp extends GoogleLoggingApi.NoOp<NextLoggingApi>

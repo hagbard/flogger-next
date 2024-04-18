@@ -39,6 +39,26 @@ public class FluentLoggerTest {
   }
 
   @Test
+  public void testEvaluation_formatted() {
+    int x = 23;
+    int y = 19;
+    logger.atInfo(). "%#x\{ x } + %#x\{ y } = %#x\{ lazy(() -> x + y) }" .log();
+    LogEntry entry = logs.assertLogs().withLevel(INFO).getOnlyMatch();
+    // Normally testing exact message contents makes tests brittle, but these are logger tests.
+    assertThat(entry.message()).isEqualTo("0x17 + 0x13 = 0x2a");
+  }
+
+  @Test
+  public void testEvaluation_mixed() {
+    int x = 23;
+    int y = 19;
+    logger.atInfo(). "\{ x } + \{ y } = %#x\{ lazy(() -> x + y) }" .log();
+    LogEntry entry = logs.assertLogs().withLevel(INFO).getOnlyMatch();
+    // Normally testing exact message contents makes tests brittle, but these are logger tests.
+    assertThat(entry.message()).isEqualTo("23 + 19 = 0x2a");
+  }
+
+  @Test
   public void testArguments_notEvaluatedWhenDisabled() {
     TestArg arg = new TestArg("Spanish Inquisition");
     logger.atFine(). "Unexected: \{ arg }" .log();
