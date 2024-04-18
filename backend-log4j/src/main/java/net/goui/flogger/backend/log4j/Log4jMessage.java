@@ -8,9 +8,10 @@ import org.apache.logging.log4j.message.Message;
 import org.apache.logging.log4j.util.StringBuilderFormattable;
 
 /**
- * TODO: Docs
+ * A simplified serializable Log4J {@link Message} instance which avoids using Log4J classes that
+ * expect specific formatting.
  */
-public final class Log4jMessage implements Message, StringBuilderFormattable, Serializable {
+final class Log4jMessage implements Message, StringBuilderFormattable, Serializable {
   private static final Object[] EMPTY_ARGS = new Object[0];
 
   private static final long serialVersionUID = 1094571572809411166L;

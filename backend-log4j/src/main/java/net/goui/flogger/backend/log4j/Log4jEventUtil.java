@@ -12,9 +12,7 @@ import java.util.Set;
 import org.apache.logging.log4j.core.impl.ContextDataFactory;
 import org.apache.logging.log4j.util.StringMap;
 
-/**
- * TODO: Docs
- */
+/** Internal utilities for Log4J related conversions. */
 final class Log4jEventUtil {
   /** Returns a {@link StackTraceElement} with the log site information in. */
   static StackTraceElement getLog4jSource(LogSite logSite) {
