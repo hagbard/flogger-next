@@ -7,12 +7,12 @@
     <parent>
         <groupId>net.goui.flogger-next</groupId>
         <artifactId>root</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>1.0.0</version>
     </parent>
 
     <name>Logger Next</name>
     <artifactId>logger</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
     <url>${base.url}/${project.artifactId}</url>
 
@@ -35,46 +35,46 @@
         <dependency>
             <groupId>com.google.flogger</groupId>
             <artifactId>flogger</artifactId>
-            <version>0.8</version>
+            <version>${flogger.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.flogger/google-extensions -->
         <dependency>
             <groupId>com.google.flogger</groupId>
             <artifactId>google-extensions</artifactId>
-            <version>0.8</version>
+            <version>${flogger.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.errorprone/error_prone_annotations -->
         <dependency>
             <groupId>com.google.errorprone</groupId>
             <artifactId>error_prone_annotations</artifactId>
-            <version>2.25.0</version>
+            <version>${error-prone.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/junit/junit -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.13.2</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/net.goui.flogger-testing/junit4 -->
         <dependency>
             <groupId>net.goui.flogger-testing</groupId>
             <artifactId>junit4</artifactId>
-            <version>1.0.12</version>
+            <version>${flogger-testing.version}</version>
             <scope>test</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>33.0.0-jre</version>
+            <version>${guava.version}</version>
             <scope>test</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.flogger/flogger-grpc-context -->
         <dependency>
             <groupId>com.google.flogger</groupId>
             <artifactId>flogger-grpc-context</artifactId>
-            <version>0.8</version>
+            <version>${flogger.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -6,12 +6,12 @@
     <parent>
         <groupId>net.goui.flogger-next</groupId>
         <artifactId>root</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>1.0.0</version>
     </parent>
 
     <name>Common Backend</name>
     <artifactId>backend-common</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
     <url>${base.url}/${project.artifactId}</url>
 
@@ -20,38 +20,34 @@
         <dependency>
             <groupId>com.google.flogger</groupId>
             <artifactId>flogger</artifactId>
-            <version>0.8</version>
+            <version>${flogger.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.flogger/flogger-testing -->
         <dependency>
             <groupId>com.google.flogger</groupId>
             <artifactId>flogger-testing</artifactId>
-            <version>0.8</version>
+            <version>${flogger.version}</version>
+            <scope>test</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/junit/junit -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.13.2</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.truth/truth -->
         <dependency>
             <groupId>com.google.truth</groupId>
             <artifactId>truth</artifactId>
-            <version>1.4.1</version>
+            <version>${truth.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.google.truth.extensions</groupId>
-            <artifactId>truth-java8-extension</artifactId>
-            <version>1.4.1</version>
-            <scope>test</scope>
-        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>33.0.0-jre</version>
+            <version>${guava.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

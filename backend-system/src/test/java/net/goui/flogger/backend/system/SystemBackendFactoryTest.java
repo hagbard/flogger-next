@@ -6,12 +6,12 @@ import static net.goui.flogger.testing.LevelClass.INFO;
 import static net.goui.flogger.testing.LevelClass.WARNING;
 import static net.goui.flogger.testing.truth.LogSubject.assertThat;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.common.flogger.MetadataKey;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
-import net.goui.flogger.FluentLogger;
 import net.goui.flogger.testing.LevelClass;
 import net.goui.flogger.testing.LogEntry;
 import net.goui.flogger.testing.junit4.FloggerTestRule;
@@ -27,7 +27,6 @@ public class SystemBackendFactoryTest {
   // UnknownLoggerClass has its backend name mapped to the *parent* of this package.
   // This demonstrates that (at least in most cases) logger name mapping DOES NOT
   // impact whether logs are captured or not.
-  //
   @Rule public final FloggerTestRule logged = FloggerTestRule.forPackageUnderTest(LevelClass.INFO);
 
   private static final String UNKNOWN_LOGGER_CLASS_BACKEND_NAME = "net.goui.flogger.backend";

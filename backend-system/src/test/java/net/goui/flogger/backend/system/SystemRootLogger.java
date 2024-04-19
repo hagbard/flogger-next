@@ -1,7 +1,7 @@
 package net.goui.flogger.backend.system;
 
+import com.google.common.flogger.FluentLogger;
 import java.util.logging.Level;
-import net.goui.flogger.FluentLogger;
 
 class SystemRootLogger {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
