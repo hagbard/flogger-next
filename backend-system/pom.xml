@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>net.goui.flogger-next</groupId>
+        <artifactId>root</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <name>System Backend</name>
+    <artifactId>backend-system</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+    <url>${base.url}/${project.artifactId}</url>
+
+    <dependencies>
+        <dependency>
+            <groupId>net.goui.flogger-next</groupId>
+            <artifactId>backend-common</artifactId>
+            <version>${flogger-next.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.google.flogger/flogger-system-backend -->
+        <dependency>
+            <groupId>com.google.flogger</groupId>
+            <artifactId>flogger-system-backend</artifactId>
+            <version>${flogger.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.google.flogger/flogger-grpc-context -->
+        <dependency>
+            <groupId>com.google.flogger</groupId>
+            <artifactId>flogger-grpc-context</artifactId>
+            <version>${flogger.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/junit/junit -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.google.truth/truth -->
+        <dependency>
+            <groupId>com.google.truth</groupId>
+            <artifactId>truth</artifactId>
+            <version>${truth.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/net.goui.flogger-testing/junit4 -->
+        <dependency>
+            <groupId>net.goui.flogger-testing</groupId>
+            <artifactId>junit4</artifactId>
+            <version>${flogger-testing.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/io.grpc/grpc-context -->
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-context</artifactId>
+            <version>${grpc-context.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

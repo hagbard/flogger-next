@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>net.goui.flogger-next</groupId>
+    <artifactId>root</artifactId>
+    <name>Flogger Next</name>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+    <url>https://github.com/hagbard/flogger-next</url>
+
+    <description>
+        Powerful extensions to the core Flogger API.
+    </description>
+
+    <developers>
+        <developer>
+            <name>David Beaumont</name>
+            <email>david.beaumont+sonatype@gmail.com</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/hagbard/flogger-next.git</connection>
+        <developerConnection>scm:git:ssh://github.com:hagbard/flogger-next.git</developerConnection>
+        <url>http://github.com/hagbard/flogger-next/tree/master</url>
+    </scm>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <base.url>https://github.com/hagbard/flogger-next/tree/main</base.url>
+
+        <!-- Flogger/logging related dependencies. -->
+        <flogger.version>0.8</flogger.version>
+        <flogger-testing.version>1.0.12</flogger-testing.version>
+        <flogger-next.version>1.0.0</flogger-next.version>
+        <log4j.verson>2.20.0</log4j.verson>
+
+        <!-- Testing dependencies. -->
+        <junit.version>4.13.2</junit.version>
+        <truth.version>1.4.2</truth.version>
+
+        <!-- Utilities. -->
+        <guava.version>33.1.0-jre</guava.version>
+        <error-prone.version>2.25.0</error-prone.version>
+        <grpc-context.version>1.58.0</grpc-context.version>
+    </properties>
+
+    <modules>
+        <module>logger</module>
+        <module>backend-common</module>
+        <module>backend-system</module>
+        <module>backend-log4j</module>
+    </modules>
+
+    <licenses>
+        <license>
+            <name>EPL-2.0</name>
+            <url>https://www.eclipse.org/legal/epl-2.0</url>
+        </license>
+        <license>
+            <name>Apache-2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+        </license>
+    </licenses>
+
+    <build>
+        <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
+            <plugins>
+                <!-- clean lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
+                <plugin>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>3.2.0</version>
+                </plugin>
+                <!-- default lifecycle, jar packaging: see https://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_jar_packaging -->
+                <plugin>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.3.0</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.10.1</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.0.0</version>
+                    <configuration>
+                        <argLine>--enable-preview</argLine>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.3.0</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>2.5.2</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>2.8.2</version>
+                </plugin>
+                <!-- site lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#site_Lifecycle -->
+                <plugin>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>3.7.1</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-project-info-reports-plugin</artifactId>
+                    <version>3.0.0</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>
