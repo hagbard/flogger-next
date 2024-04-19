@@ -1,39 +1,38 @@
 # Improved Flogger APIs and Functionality
 
-This project aims to add unlock new, powerful features for Flogger via API extensions, new backend
-implementations and utility classes.
+Flogger is a powerful logging API for Java, but the core library lacks configuration options and
+doesn't make use of modern Java features.
 
-Currently, it provides two useful extensions:
+The Flogger Next project aims to unlock new, powerful features for Flogger via API extensions and
+new backend implementations.
 
-## Automatic Task Tracking in Logs
+This project provides two powerful extensions:
 
-Track your tasks and sub-tasks with unique hierarchical IDs per invocation, allowing you to reliably
-reconstruct the execution flow of your code from debug logs.
-[Learn more](https://github.com/hagbard/flogger-next/tree/main/tasks).
+## Integration with String Template syntax for logging
 
-```xml
-<!-- https://mvnrepository.com/artifact/net.goui.flogger-next/tasks -->
-<dependency>
-    <groupId>net.goui.flogger-next</groupId>
-    <artifactId>tasks</artifactId>
-    <version>1.0.0</version>
-</dependency>
+Use the new String Template syntax to include variables directly in formatted message.
+
+<!-- @formatter:off -->
+```java
+// Evaluate log arguments directly with the String Template syntax.
+logger.atInfo()."\{x} + \{y} = \{x + y}".log();
 ```
+<!-- @formatter:on -->
 
-## Extended String Template Log Syntax
+See the [logger artifact](logger/README.md) for more,
+or [read the manual](https://hagbard.github.io/the-flogger-manual/next).
 
-Utilize Java's new `StringTemplate` syntax to improve readability of your log statements.
-[Learn more](https://github.com/hagbard/flogger-next/tree/main/logger).
+## Customizable logger backends with improved efficiency
 
-```xml
-<!-- https://mvnrepository.com/artifact/net.goui.flogger-next/logger -->
-<dependency>
-    <groupId>net.goui.flogger-next</groupId>
-    <artifactId>logger</artifactId>
-    <version>1.0.0</version>
-</dependency>
-```
+Improve efficiency and customization for [JDK logging](backend-system/README.md)
+or [Log4J2](backend-log4j/README.md).
 
-## About
+Features include:
+
+* Customizable [message formatting](https://hagbard.github.io/the-flogger-manual/next/formatter).
+* Efficient, customizable
+  [logger backend allocation strategy](https://hagbard.github.io/the-flogger-manual/next/backend).
+
+## About the author
 
 David Beaumont is the designer and author of Google's Flogger logging library.

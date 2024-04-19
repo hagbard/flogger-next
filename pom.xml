@@ -8,12 +8,12 @@
     <groupId>net.goui.flogger-next</groupId>
     <artifactId>root</artifactId>
     <name>Flogger Next</name>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>pom</packaging>
     <url>https://github.com/hagbard/flogger-next</url>
 
     <description>
-        A powerful fluent API for testing Flogger log statements, and more.
+        Powerful extensions to the core Flogger API.
     </description>
 
     <developers>
@@ -34,14 +34,28 @@
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <base.url>https://github.com/hagbard/flogger-next/tree/main</base.url>
+
+        <!-- Flogger/logging related dependencies. -->
+        <flogger.version>0.8</flogger.version>
+        <flogger-testing.version>1.0.12</flogger-testing.version>
+        <flogger-next.version>1.0.0</flogger-next.version>
+        <log4j.verson>2.20.0</log4j.verson>
+
+        <!-- Testing dependencies. -->
+        <junit.version>4.13.2</junit.version>
+        <truth.version>1.4.2</truth.version>
+
+        <!-- Utilities. -->
+        <guava.version>33.1.0-jre</guava.version>
+        <error-prone.version>2.25.0</error-prone.version>
+        <grpc-context.version>1.58.0</grpc-context.version>
     </properties>
 
     <modules>
-        <module>tasks</module>
         <module>logger</module>
-        <module>otel</module>
         <module>backend-common</module>
         <module>backend-system</module>
+        <module>backend-log4j</module>
     </modules>
 
     <licenses>
@@ -61,38 +75,27 @@
                 <!-- clean lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
                 <plugin>
                     <artifactId>maven-clean-plugin</artifactId>
-                    <version>3.1.0</version>
+                    <version>3.2.0</version>
                 </plugin>
                 <!-- default lifecycle, jar packaging: see https://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_jar_packaging -->
                 <plugin>
                     <artifactId>maven-resources-plugin</artifactId>
-                    <version>3.0.2</version>
+                    <version>3.3.0</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.8.0</version>
-                    <configuration>
-                        <annotationProcessorPaths>
-                            <path>
-                                <groupId>com.google.auto.value</groupId>
-                                <artifactId>auto-value</artifactId>
-                                <version>1.10.1</version>
-                            </path>
-<!--                            <path>-->
-<!--                                <groupId>com.google.auto.service</groupId>-->
-<!--                                <artifactId>auto-service</artifactId>-->
-<!--                                <version>1.0.2</version>-->
-<!--                            </path>-->
-                        </annotationProcessorPaths>
-                    </configuration>
+                    <version>3.10.1</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.22.1</version>
+                    <version>3.0.0</version>
+                    <configuration>
+                        <argLine>--enable-preview</argLine>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.0.2</version>
+                    <version>3.3.0</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-install-plugin</artifactId>

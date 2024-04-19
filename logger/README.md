@@ -1,42 +1,35 @@
 # Next Generation Flogger API
 
+Read the manual here: https://hagbard.github.io/the-flogger-manual/next/
+
 Utilize Java's new `StringTemplate` syntax to improve readability of your log statements.
 
-This small, drop-in extension of Google's `FluentLogger` logging API enables the proposed JDK
-22`StringTemplate` functionality (current available as a preview in JDK 21).
+This artifact provides a drop-in replacement for Google's `FluentLogger` class enables use of the
+proposed (JDK 21) `StringTemplate` functionality alongside all of Flogger's other features.
 
-## Syntax
+## Using String Template syntax
 
-This lets you write your log statements using the new string template syntax:
-
-<!-- @formatter:off -->
-```java
-logger.atInfo()."fn(\{x}, \{y}) = \{lazy(() -> expensiveFn(x, y))}".log();
-```
-<!-- @formatter:on -->
-
-which is equivalent to:
+The new String Template syntax use variable directly inside formatted strings without incurring the
+cost of string concatenation at the log site.
 
 <!-- @formatter:off -->
 ```java
-logger.atInfo().log("fn(%s, %s) = %s", x, y, lazy(() -> expensiveFn(x, y)));
+// Evaluate log arguments directly with the String Template syntax.
+logger.atInfo()."\{x} + \{y} = \{x + y}".log();
+
+// Use optional String Formatter syntax if desired.
+logger.atInfo()."%d\{n} = %#x\{n} in hexadecimal".log();
 ```
 <!-- @formatter:on -->
 
-However, it also works with multiline comments such as:
+Use lazy arguments for greater efficiency in log statements that are disabled by default.
 
 <!-- @formatter:off -->
 ```java
-// Ignores leading newline and common indentation.
-logger.atInfo()."""
-    {
-      foo = "\{foo}",
-      bar = "\{bar}",
-    }""".log();
+// Neither the template, nor lazy arguments are evaluated when logging is disabled.  
+logger.atFine()."Statistics: \{lazy(() -> collectStatsExpensive())}".log();
 ```
 <!-- @formatter:on -->
-
-which can make longer log statements far more readable.
 
 ## Compatibility
 
@@ -44,24 +37,35 @@ This works efficiently with all of Flogger's existing features such as:
 
 * Zero evaluation for disabled log statements.
 * Zero evaluation for rate-limited log statements.
-* Supports Flogger's `LazyArg` mechanism to further defer expensive work at the call-site.
-* Complete integration with all the existing fluent API methods, such as
-  `withCause()`, `atMostEvery()` etc.
-
-However since the new StringTemplate syntax does not support all of printf's formatting (
-e.g. `"%08x"`), it may not be best suited for all log statements. But for these cases you can still
-use Flogger's normal `log()` methods.
-
-This class deliberately uses the exact class name of `FluentLogger` to allow migration by simply
-changing import statements. Since it inherits from the same fluent API as Google's `FluentLogger`,
-it should always be safe to swap to this class.
+* Compatible with Flogger's `LazyArg` mechanism to defer expensive work at the log site.
+* Compatible with all existing fluent API methods, such as `withCause()`, `atMostEvery()` etc.
 
 > **Note**
->
-> Obviously since this functionality is currently (Oct 2023) only being previewed in the JDK, you
-> will have to opt into the JDK preview features by setting the `--enable-preview` flag if you want
-> to use it.
+> Since this functionality is currently (May 2024) only being previewed in JDK 21, you will have to
+> opt into the JDK preview features by setting the `--enable-preview` flag if you want to use it.
 
-## Future Work
+## Installation
 
-It is expected that other features, such a new fluent methods, will be also added to this class.
+Maven dependency:
+
+<!-- @formatter:off -->
+```xml
+<dependency>
+    <groupId>net.goui.flogger-next</groupId>
+    <artifactId>logger</artifactId>
+    <version>${flogger-next.version}</version>
+</dependency>
+```
+<!-- @formatter:on -->
+
+Simply import the following class in preference to Google's `FluentLogger`
+
+<!-- @formatter:off -->
+```java
+import net.goui.flogger.FluentLogger;
+```
+<!-- @formatter:on -->
+
+This class deliberately uses the same class name of `FluentLogger` to allow migration by simply
+changing import statements. Since it inherits from the same base API as Google's `FluentLogger`, it
+should always be safe to swap to this class.
