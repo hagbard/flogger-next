@@ -3,8 +3,6 @@
  Set to debug or trace if log4j initialization is failing. -->
 <Configuration status="warn">
     <Properties>
-        <Property name="flogger.properties">Filename goes here</Property>
-        <!-- -->
         <Property name="flogger.use_backend_cache">true</Property>
         <Property name="flogger.backend_naming.use_system_roots">true</Property>
         <Property name="flogger.backend_naming.retain_at_most">4</Property>

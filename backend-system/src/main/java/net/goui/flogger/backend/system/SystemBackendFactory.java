@@ -57,6 +57,7 @@ public class SystemBackendFactory extends BackendFactory {
     }
   }
 
+  // TODO: Stop extending AbstractBackend so the JDK logger setup can be made lazy.
   private static final class Backend extends AbstractBackend {
     Backend(String loggerName) {
       super(loggerName);

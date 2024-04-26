@@ -29,11 +29,15 @@ import java.util.stream.Stream;
  *       For example, if using the JDK backend, you need to set the {@code
  *       java.util.logging.config.class} system property to {@code
  *       net.goui.flogger.backend.system.FloggerConfig} to read the system roots.
+ *   <li>{@code flogger.backend_naming.default_root_extend}: Integer<br>
+ *       The default depth to extend matched root entries by. Setting this is to {@code N} is
+ *       equivalent to adding {@code N} copies of the {@code ".*"} suffix to any root
+ *       entry without an explicit suffix, including system root entries.
  *   <li>{@code flogger.backend_naming.trim_at_least}: Integer<br>
  *       The minimum number of name segments to be removed from the end of a logger class name to
  *       generate a backend name. This only applies for class names <em>not</em> matched by a
  *       logging root.<br>
- *       This is useful for mapping logging class names to some parent package.
+ *       This is useful for mapping unknown logging class names to some parent package.
  *   <li>{@code flogger.backend_naming.retain_at_most}: Integer<br>
  *       The greatest depth allowed for any generated logger backend name for class names
  *       <em>not</em> matched by a logging root.<br>
@@ -43,6 +47,7 @@ import java.util.stream.Stream;
 public final class DefaultNamingStrategy implements NamingStrategy {
   private static final String OPTION_TRIM_AT_LEAST = "trim_at_least";
   private static final String OPTION_RETAIN_AT_MOST = "retain_at_most";
+  private static final String OPTION_DEFAULT_ROOT_EXTEND = "default_root_extend";
   private static final String OPTION_ROOTS = "roots";
   private static final String OPTION_SYSTEM_ROOTS = "system_roots";
 
@@ -61,11 +66,13 @@ public final class DefaultNamingStrategy implements NamingStrategy {
   DefaultNamingStrategy(Options options) {
     this.trimAtLeast = unsignedInt(options, OPTION_TRIM_AT_LEAST);
     this.retainAtMost = unsignedInt(options, OPTION_RETAIN_AT_MOST);
+    int defaultRootExtend = unsignedInt(options, OPTION_DEFAULT_ROOT_EXTEND);
 
     // Can contain trailing ".*.*" style wildcards to denote how many child levels to keep.
     List<String> explicitRoots = options.getStringArray(OPTION_ROOTS);
-    this.rootExtensions = getRootExtensions(explicitRoots);
     List<String> systemRoots = options.getStringArray(OPTION_SYSTEM_ROOTS);
+    this.rootExtensions = getRootExtensions(explicitRoots, systemRoots, defaultRootExtend);
+
     // Create the sorted array of root entries. This ordering is vital to correct lookup since,
     // for any given class name, the index of its parent entry cannot come after the insertion
     // index of the class name.
@@ -117,18 +124,31 @@ public final class DefaultNamingStrategy implements NamingStrategy {
    *   <li>{@code "foo.bar"}: No mapping.
    * </ul>
    */
-  private static Map<String, Integer> getRootExtensions(List<String> roots) {
+  private static Map<String, Integer> getRootExtensions(
+      List<String> explicitRoots, List<String> systemRoots, int defaultRootExtend) {
+
     Map<String, Integer> map = new HashMap<>();
-    for (String root : roots) {
+    for (String root : explicitRoots) {
       if (root.isEmpty()) {
         throw new IllegalArgumentException("logger root cannot be empty");
       }
-      int wc = countWildcards(root);
-      if (wc > 0) {
-        String nonWildcardRoot = removeWildcards(root, wc);
-        if (map.put(nonWildcardRoot, wc) != null) {
-          throw new IllegalArgumentException("multiple logger roots match: " + nonWildcardRoot);
-        }
+      int rootExtension = countWildcards(root);
+      if (rootExtension > 0) {
+        root = removeWildcards(root, rootExtension);
+      } else {
+        rootExtension = defaultRootExtend;
+      }
+      if (map.put(root, rootExtension) != null) {
+        throw new IllegalArgumentException("multiple logger roots match: " + root);
+      }
+    }
+    for (String root : systemRoots) {
+      // Don't add a mapping for the unnamed system root (if the user wants to add one, they can
+      // do it via "*.*" or similar, but adding one prevents there being any unmatched entries,
+      // which stops "trim_at_least" or "retain_at_most" from having any affect, so it's
+      // something we shouldn't do implicitly.
+      if (!root.isEmpty()) {
+        map.putIfAbsent(root, defaultRootExtend);
       }
     }
     return map;
