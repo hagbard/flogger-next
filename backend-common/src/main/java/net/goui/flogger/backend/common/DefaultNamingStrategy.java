@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2024, David Beaumont (https://github.com/hagbard).
+ *
+ * This program and the accompanying materials are made available under the terms of the
+ * Eclipse Public License v. 2.0 available at https://www.eclipse.org/legal/epl-2.0, or the
+ * Apache License, Version 2.0 available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ ******************************************************************************/
+
 package net.goui.flogger.backend.common;
 
 import static java.util.Arrays.stream;
@@ -31,8 +41,8 @@ import java.util.stream.Stream;
  *       net.goui.flogger.backend.system.FloggerConfig} to read the system roots.
  *   <li>{@code flogger.backend_naming.default_root_extend}: Integer<br>
  *       The default depth to extend matched root entries by. Setting this is to {@code N} is
- *       equivalent to adding {@code N} copies of the {@code ".*"} suffix to any root
- *       entry without an explicit suffix, including system root entries.
+ *       equivalent to adding {@code N} copies of the {@code ".*"} suffix to any root entry without
+ *       an explicit suffix, including system root entries.
  *   <li>{@code flogger.backend_naming.trim_at_least}: Integer<br>
  *       The minimum number of name segments to be removed from the end of a logger class name to
  *       generate a backend name. This only applies for class names <em>not</em> matched by a

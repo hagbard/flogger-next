@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2024, David Beaumont (https://github.com/hagbard).
+ *
+ * This program and the accompanying materials are made available under the terms of the
+ * Eclipse Public License v. 2.0 available at https://www.eclipse.org/legal/epl-2.0, or the
+ * Apache License, Version 2.0 available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ ******************************************************************************/
+
 package net.goui.flogger.backend.common.formatter;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -77,9 +87,7 @@ public class DefaultPatternFormatterTest {
     DefaultPatternFormatter fmt = new DefaultPatternFormatter(Options.of(opts::get));
 
     FakeLogData log =
-        FakeLogData.of("<message>")
-            .addMetadata(Key.FOO_KEY, "Hello")
-            .addMetadata(Key.BAR_KEY, 42);
+        FakeLogData.of("<message>").addMetadata(Key.FOO_KEY, "Hello").addMetadata(Key.BAR_KEY, 42);
     assertThat(fmt.format(log, toMetadata(log))).isEqualTo("<message> \"Hello\" [bar=42]");
   }
 
@@ -94,9 +102,7 @@ public class DefaultPatternFormatterTest {
     DefaultPatternFormatter fmt = new DefaultPatternFormatter(Options.of(opts::get));
 
     FakeLogData log =
-        FakeLogData.of("<message>")
-            .addMetadata(Key.FOO_KEY, "Hello")
-            .addMetadata(Key.BAR_KEY, 42);
+        FakeLogData.of("<message>").addMetadata(Key.FOO_KEY, "Hello").addMetadata(Key.BAR_KEY, 42);
     assertThat(fmt.format(log, toMetadata(log))).isEqualTo("<message> BAR:42 [foo=\"Hello\"]");
   }
 
@@ -146,7 +152,8 @@ public class DefaultPatternFormatterTest {
     ImmutableMap<String, String> opts = ImmutableMap.of("pattern", "%{zoot/</>}");
     IllegalArgumentException e =
         assertThrows(
-            IllegalArgumentException.class, () -> new DefaultPatternFormatter(Options.of(opts::get)));
+            IllegalArgumentException.class,
+            () -> new DefaultPatternFormatter(Options.of(opts::get)));
     assertThat(e).hasMessageThat().contains("%{zoot}");
     assertThat(e).hasMessageThat().contains("unknown formatting directive");
   }
@@ -179,7 +186,8 @@ public class DefaultPatternFormatterTest {
     ImmutableMap<String, String> opts = ImmutableMap.of("pattern", "%{message/</>}");
     IllegalArgumentException e =
         assertThrows(
-            IllegalArgumentException.class, () -> new DefaultPatternFormatter(Options.of(opts::get)));
+            IllegalArgumentException.class,
+            () -> new DefaultPatternFormatter(Options.of(opts::get)));
     assertThat(e).hasMessageThat().contains("%{message}");
     assertThat(e).hasMessageThat().contains("must not contain prefix or suffix");
   }

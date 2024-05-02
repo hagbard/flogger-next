@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2024, David Beaumont (https://github.com/hagbard).
+ *
+ * This program and the accompanying materials are made available under the terms of the
+ * Eclipse Public License v. 2.0 available at https://www.eclipse.org/legal/epl-2.0, or the
+ * Apache License, Version 2.0 available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ ******************************************************************************/
+
 package net.goui.flogger.backend.system;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -64,38 +74,38 @@ public class SystemBackendFactoryTest {
   @Test
   public void testLogging_argumentError() {
     FluentLogger logger = FluentLogger.forEnclosingClass();
-    Object unexpected = new Object() {
-      @Override
-      public String toString() {
-        throw new RuntimeException("Spanish Inquisition");
-      }
-    };
+    Object unexpected =
+        new Object() {
+          @Override
+          public String toString() {
+            throw new RuntimeException("Spanish Inquisition");
+          }
+        };
 
     logger.atInfo().log("Nobody expects: %s", unexpected);
-    LogEntry errLog = logged
-        .assertLogs()
-        .withLevel(INFO)
-        .withMessageContaining("Nobody expects:")
-        .getOnlyMatch();
+    LogEntry errLog =
+        logged.assertLogs().withLevel(INFO).withMessageContaining("Nobody expects:").getOnlyMatch();
     assertThat(errLog).message().contains("java.lang.RuntimeException: Spanish Inquisition");
   }
 
   @Test
   public void testLogging_internalError() {
     FluentLogger logger = FluentLogger.forEnclosingClass();
-    MetadataKey<String> badKey = new MetadataKey<>("label", String.class, false) {
-      @Override
-      protected void emit(String value, KeyValueHandler kvh) {
-        throw new RuntimeException("Internal Error");
-      }
-    };
+    MetadataKey<String> badKey =
+        new MetadataKey<>("label", String.class, false) {
+          @Override
+          protected void emit(String value, KeyValueHandler kvh) {
+            throw new RuntimeException("Internal Error");
+          }
+        };
 
     logger.atInfo().with(badKey, "<unused>").log("Message");
-    LogEntry errLog = logged
-        .assertLogs()
-        .withLevel(WARNING)
-        .withMessageContaining("LOGGING ERROR")
-        .getOnlyMatch();
+    LogEntry errLog =
+        logged
+            .assertLogs()
+            .withLevel(WARNING)
+            .withMessageContaining("LOGGING ERROR")
+            .getOnlyMatch();
     assertThat(errLog).message().contains("Internal Error");
     assertThat(errLog).message().contains("original message: Message");
   }

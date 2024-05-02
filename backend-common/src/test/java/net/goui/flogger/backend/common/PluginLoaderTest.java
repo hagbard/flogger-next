@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2024, David Beaumont (https://github.com/hagbard).
+ *
+ * This program and the accompanying materials are made available under the terms of the
+ * Eclipse Public License v. 2.0 available at https://www.eclipse.org/legal/epl-2.0, or the
+ * Apache License, Version 2.0 available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ ******************************************************************************/
+
 package net.goui.flogger.backend.common;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -68,7 +78,8 @@ public class PluginLoaderTest {
 
   @Test
   public void instantiate_missingConstructor() {
-    ImmutableMap<String, String> opts = ImmutableMap.of("impl", NoMatchingConstructor.class.getName());
+    ImmutableMap<String, String> opts =
+        ImmutableMap.of("impl", NoMatchingConstructor.class.getName());
     Map<String, Function<Options, TestPlugin>> defaultPlugins =
         Map.of(DEFAULT_PLUGIN_NAME, DefaultPlugin::new);
 
