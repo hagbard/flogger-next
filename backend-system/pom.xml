@@ -6,12 +6,12 @@
     <parent>
         <groupId>net.goui.flogger.next</groupId>
         <artifactId>root</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1</version>
     </parent>
 
     <name>System Backend</name>
     <artifactId>backend-system</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
     <url>${base.url}/${project.artifactId}</url>
 
@@ -48,9 +48,9 @@
             <version>${truth.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/net.goui.flogger-testing/junit4 -->
+        <!-- https://mvnrepository.com/artifact/net.goui.flogger.testing/junit4 -->
         <dependency>
-            <groupId>net.goui.flogger-testing</groupId>
+            <groupId>net.goui.flogger.testing</groupId>
             <artifactId>junit4</artifactId>
             <version>${flogger-testing.version}</version>
             <scope>test</scope>
