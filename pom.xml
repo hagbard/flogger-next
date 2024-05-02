@@ -18,7 +18,7 @@
     <groupId>net.goui.flogger.next</groupId>
     <artifactId>root</artifactId>
     <name>Flogger Next</name>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <packaging>pom</packaging>
     <url>https://github.com/hagbard/flogger-next</url>
 
@@ -48,7 +48,7 @@
         <!-- Flogger/logging related dependencies. -->
         <flogger.version>0.8</flogger.version>
         <flogger-testing.version>1.0.12</flogger-testing.version>
-        <flogger-next.version>1.0.1</flogger-next.version>
+        <flogger-next.version>1.0.2</flogger-next.version>
         <log4j.verson>2.20.0</log4j.verson>
 
         <!-- Testing dependencies. -->

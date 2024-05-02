@@ -17,12 +17,12 @@
     <parent>
         <groupId>net.goui.flogger.next</groupId>
         <artifactId>root</artifactId>
-        <version>1.0.1</version>
+        <version>1.0.2</version>
     </parent>
 
     <name>Log4J Backend</name>
     <artifactId>backend-log4j</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <packaging>jar</packaging>
     <url>${base.url}/${project.artifactId}</url>
 

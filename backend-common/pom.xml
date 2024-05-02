@@ -17,12 +17,12 @@
     <parent>
         <groupId>net.goui.flogger.next</groupId>
         <artifactId>root</artifactId>
-        <version>1.0.1</version>
+        <version>1.0.2</version>
     </parent>
 
     <name>Common Backend</name>
     <artifactId>backend-common</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <packaging>jar</packaging>
     <url>${base.url}/${project.artifactId}</url>
 

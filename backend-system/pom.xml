@@ -17,12 +17,12 @@
     <parent>
         <groupId>net.goui.flogger.next</groupId>
         <artifactId>root</artifactId>
-        <version>1.0.1</version>
+        <version>1.0.2</version>
     </parent>
 
     <name>System Backend</name>
     <artifactId>backend-system</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <packaging>jar</packaging>
     <url>${base.url}/${project.artifactId}</url>
 
@@ -35,7 +35,7 @@
         <dependency>
             <groupId>net.goui.flogger.next</groupId>
             <artifactId>backend-common</artifactId>
-            <version>1.0.1</version>
+            <version>1.0.2</version>
             <scope>compile</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.flogger/flogger-system-backend -->
