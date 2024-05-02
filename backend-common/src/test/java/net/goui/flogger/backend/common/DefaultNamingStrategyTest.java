@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2024, David Beaumont (https://github.com/hagbard).
+ *
+ * This program and the accompanying materials are made available under the terms of the
+ * Eclipse Public License v. 2.0 available at https://www.eclipse.org/legal/epl-2.0, or the
+ * Apache License, Version 2.0 available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ ******************************************************************************/
+
 package net.goui.flogger.backend.common;
 
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
@@ -115,6 +125,29 @@ public class DefaultNamingStrategyTest {
     assertThat(strategy.getBackendName("com.foo.bar.baz.other.Class"))
         .isEqualTo("com.foo.bar.baz.other");
     assertThat(strategy.getBackendName("com.foo.bar.baz.Class")).isEqualTo("com.foo.bar.baz.Class");
+  }
+
+  @Test
+  public void getBackendName_extendedRoots() {
+    Options opts =
+        options(
+            kvp("default_root_extend", "1"),
+            kvp("roots.size", "2"),
+            kvp("roots.0", "com.foo"),
+            kvp("roots.1", "com.bar"),
+            // Added synthetically depending on the specific logger implementation used.
+            kvp("system_roots.size", "2"),
+            // The unnamed system root is IGNORED to avoid everything matching it.
+            kvp("system_roots.0", ""),
+            kvp("system_roots.1", "net.system"));
+
+    DefaultNamingStrategy strategy = new DefaultNamingStrategy(opts);
+
+    assertThat(strategy.getBackendName("com.foo.bar.Class")).isEqualTo("com.foo.bar");
+    assertThat(strategy.getBackendName("com.bar.foo.baz.Class")).isEqualTo("com.bar.foo");
+    assertThat(strategy.getBackendName("net.system.foo.bar.Class")).isEqualTo("net.system.foo");
+    // Unaffected since the unnamed system root is not used. Unmatched classes use "retain_at_most".
+    assertThat(strategy.getBackendName("org.other.thing.Class")).isEqualTo("org.other.thing.Class");
   }
 
   @Test

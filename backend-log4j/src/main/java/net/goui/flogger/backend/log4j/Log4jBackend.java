@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2024, David Beaumont (https://github.com/hagbard).
+ *
+ * This program and the accompanying materials are made available under the terms of the
+ * Eclipse Public License v. 2.0 available at https://www.eclipse.org/legal/epl-2.0, or the
+ * Apache License, Version 2.0 available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ ******************************************************************************/
+
 package net.goui.flogger.backend.log4j;
 
 import static net.goui.flogger.backend.log4j.Log4jEventUtil.getLog4jLevel;
@@ -10,19 +20,34 @@ import com.google.common.flogger.backend.MessageUtils;
 import com.google.common.flogger.backend.Metadata;
 import com.google.common.flogger.backend.MetadataProcessor;
 import com.google.common.flogger.backend.Platform;
+import com.google.errorprone.annotations.concurrent.LazyInit;
+import java.util.Objects;
 import java.util.logging.Level;
+import javax.annotation.CheckForNull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.impl.Log4jLogEvent;
 
-/** Flogger backend integration with Log4J2. */
+/** Flogger backend integration with Log4J2, using a lazily initialized Log4J logger. */
 final class Log4jBackend extends LoggerBackend {
-  private final Logger logger;
+  private final String backendName;
+  // Lazily initialized underlying Log4J logger instance. The LogManager is not required to return
+  // the same instance on repeated calls for the same backend name, but they should be equivalent.
+  @LazyInit @CheckForNull private Logger logger;
   private final LogMessageFormatter formatter;
 
   Log4jBackend(String backendName, LogMessageFormatter formatter) {
-    this.logger = (Logger) LogManager.getLogger(backendName);
+    this.backendName = Objects.requireNonNull(backendName);
     this.formatter = formatter;
+  }
+
+  private Logger lazyLogger() {
+    // @LazyInit pattern: http://jeremymanson.blogspot.com/2008/12/benign-data-races-in-java.html
+    Logger localRef = logger;
+    if (localRef == null) {
+      logger = localRef = (Logger) LogManager.getLogger(backendName);
+    }
+    return localRef;
   }
 
   @Override
@@ -51,22 +76,22 @@ final class Log4jBackend extends LoggerBackend {
             // Switch to currentThread.threadId() after JDK 19+ is standard.
             .setThreadId(currentThread.getId())
             .build();
-    logger.get().log(logEvent);
+    lazyLogger().get().log(logEvent);
   }
 
   @Override
   public void handleError(RuntimeException error, LogData badData) {
-    logger.warn(formatLogErrorMessage(badData, error), error);
+    lazyLogger().warn(formatLogErrorMessage(badData, error), error);
   }
 
   @Override
   public String getLoggerName() {
-    return logger.getName();
+    return backendName;
   }
 
   @Override
   public boolean isLoggable(Level level) {
-    return logger.isEnabled(getLog4jLevel(level));
+    return lazyLogger().isEnabled(getLog4jLevel(level));
   }
 
   private static String formatLogErrorMessage(LogData logData, RuntimeException error) {

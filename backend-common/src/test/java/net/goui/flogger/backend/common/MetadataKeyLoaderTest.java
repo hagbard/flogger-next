@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2024, David Beaumont (https://github.com/hagbard).
+ *
+ * This program and the accompanying materials are made available under the terms of the
+ * Eclipse Public License v. 2.0 available at https://www.eclipse.org/legal/epl-2.0, or the
+ * Apache License, Version 2.0 available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ ******************************************************************************/
+
 package net.goui.flogger.backend.common;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -12,7 +22,8 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class MetadataKeyLoaderTest {
   public static final MetadataKey<String> KEY = MetadataKey.single("key", String.class);
-  private static final MetadataKey<String> PRIVATE_KEY = MetadataKey.single("private", String.class);
+  private static final MetadataKey<String> PRIVATE_KEY =
+      MetadataKey.single("private", String.class);
 
   private static final String CLASS_NAME = MetadataKeyLoaderTest.class.getName();
 
@@ -31,8 +42,9 @@ public class MetadataKeyLoaderTest {
 
   @Test
   public void testNonPublicKey() {
-    IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
-        () -> loadMetadataKey(CLASS_NAME + "#PRIVATE_KEY"));
+    IllegalArgumentException e =
+        assertThrows(
+            IllegalArgumentException.class, () -> loadMetadataKey(CLASS_NAME + "#PRIVATE_KEY"));
     assertThat(e).hasCauseThat().isInstanceOf(IllegalAccessException.class);
   }
 }

@@ -1,18 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<!--
+  ~ Copyright (c) 2024, David Beaumont (https://github.com/hagbard).
+  ~
+  ~ This program and the accompanying materials are made available under the terms of the
+  ~ Eclipse Public License v. 2.0 available at https://www.eclipse.org/legal/epl-2.0, or the
+  ~ Apache License, Version 2.0 available at https://www.apache.org/licenses/LICENSE-2.0.
+  ~
+  ~ SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+  -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>net.goui.flogger-next</groupId>
+        <groupId>net.goui.flogger.next</groupId>
         <artifactId>root</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.2</version>
     </parent>
 
     <name>Logger Next</name>
     <artifactId>logger</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.2</version>
     <packaging>jar</packaging>
     <url>${base.url}/${project.artifactId}</url>
 
@@ -22,8 +32,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>23</source>
-                    <target>23</target>
+                    <source>21</source>
+                    <target>21</target>
                     <compilerArgs>--enable-preview</compilerArgs>
                 </configuration>
             </plugin>
@@ -56,9 +66,9 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/net.goui.flogger-testing/junit4 -->
+        <!-- https://mvnrepository.com/artifact/net.goui.flogger.testing/junit4 -->
         <dependency>
-            <groupId>net.goui.flogger-testing</groupId>
+            <groupId>net.goui.flogger.testing</groupId>
             <artifactId>junit4</artifactId>
             <version>${flogger-testing.version}</version>
             <scope>test</scope>

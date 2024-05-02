@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2024, David Beaumont (https://github.com/hagbard).
+ *
+ * This program and the accompanying materials are made available under the terms of the
+ * Eclipse Public License v. 2.0 available at https://www.eclipse.org/legal/epl-2.0, or the
+ * Apache License, Version 2.0 available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ ******************************************************************************/
+
 package net.goui.flogger.backend.common;
 
 import static com.google.common.flogger.backend.Metadata.empty;
@@ -124,9 +134,7 @@ public class AbstractBackendFactoryTest {
   public void getDefaultFormatter() {
     // Pattern formatter is tested thoroughly elsewhere, so just test the setup here.
     ImmutableMap<String, String> opts =
-        ImmutableMap.of(
-            "message_formatter.pattern",
-            "%{message}%{metadata/ {/\\}}");
+        ImmutableMap.of("message_formatter.pattern", "%{message}%{metadata/ {/\\}}");
     TestFactory factory = new TestFactory(Options.of(opts::get));
 
     FakeLogData data =
@@ -151,7 +159,8 @@ public class AbstractBackendFactoryTest {
     FakeLogData data =
         FakeLogData.of("<message>").addMetadata(Key.FOO, "xyz").addMetadata(Key.BAR, 42);
     MetadataProcessor metadata = MetadataProcessor.forScopeAndLogSite(data.getMetadata(), empty());
-    assertThat(factory.getMessageFormatter().format(data, metadata)).isEqualTo("<message> [CONTEXT bar=42 ]");
+    assertThat(factory.getMessageFormatter().format(data, metadata))
+        .isEqualTo("<message> [CONTEXT bar=42 ]");
   }
 
   @Test

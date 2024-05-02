@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2024, David Beaumont (https://github.com/hagbard).
+ *
+ * This program and the accompanying materials are made available under the terms of the
+ * Eclipse Public License v. 2.0 available at https://www.eclipse.org/legal/epl-2.0, or the
+ * Apache License, Version 2.0 available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ ******************************************************************************/
+
 package net.goui.flogger.backend.system;
 
 import com.google.common.flogger.backend.LogData;
@@ -50,13 +60,14 @@ public class SystemBackendFactory extends BackendFactory {
         String backendName, LogMessageFormatter formatter, Options options) {
       return new Backend(backendName);
     }
-    
+
     private static Options loadOptions() {
       // Must not call any code which might risk triggering reentrant Flogger logging.
       return Options.of(LogManager.getLogManager()::getProperty).getOptions("flogger");
     }
   }
 
+  // TODO: Stop extending AbstractBackend so the JDK logger setup can be made lazy.
   private static final class Backend extends AbstractBackend {
     Backend(String loggerName) {
       super(loggerName);

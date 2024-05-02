@@ -15,7 +15,7 @@ Maven dependency:
 <!-- @formatter:off -->
 ```xml
 <dependency>
-    <groupId>net.goui.flogger-next</groupId>
+    <groupId>net.goui.flogger.next</groupId>
     <artifactId>backend-log4j</artifactId>
     <version>${flogger-next.version}</version>
 </dependency>
