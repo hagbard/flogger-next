@@ -20,7 +20,7 @@ logger.atInfo()."\{x} + \{y} = \{x + y}".log();
 <!-- @formatter:on -->
 
 See the [logger artifact](logger/README.md) for more,
-or [read the manual](https://hagbard.github.io/the-flogger-manual/next).
+or [read the manual](https://hagbard.github.io/the-flogger-manual).
 
 ## Customizable logger backends with improved efficiency
 
